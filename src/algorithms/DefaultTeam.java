@@ -4,6 +4,7 @@ import java.awt.Point;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Random;
+import java.util.Collections;
 
 public class DefaultTeam {
     protected int[][] shortestPaths;
@@ -18,15 +19,14 @@ public class DefaultTeam {
         this.shortestPaths = calculShortestPaths(edgeThreshold);
 
         ArrayList<Point> result = new ArrayList<>();
+        ArrayList<Point> adapted_result = new ArrayList<>();
         ArrayList<Point> rest = new ArrayList<>();
         rest.addAll(hitPoints);
 
         // Greedy
-        // Random r = new Random();
-        int start = 5; // r.nextInt(rest.size() - 1);
+        int start = 5;
 
         result.add(rest.remove(start));
-        //Point last = null;
         while (!rest.isEmpty()) {
             Point last = result.get(result.size() - 1);
             Point next = rest.get(0);
@@ -39,39 +39,48 @@ public class DefaultTeam {
 
             result.add(next);
             rest.remove(next);
-            //last = next;
         }
 
-/*
-        System.out.println(hitPoints);
-        System.out.println(hitPoints.size());
-        System.out.println(new ArrayList<>(new HashSet<>(hitPoints)).size());
-        System.out.println("---------------");
-        System.out.println(result.size());
-        System.out.println(new ArrayList<>(new HashSet<>(result)).size());
-        System.out.println(result);
-*/
         // localsearch
-        ArrayList<Point> result2 = localSearch(result, edgeThreshold);
-/*
-        System.out.println("---------------");
-        System.out.println(result2.size());
-        System.out.println(new ArrayList<>(new HashSet<>(result2)).size());
-        System.out.println(result2);
-*/
         for (int i = 0; i < 100; i++){
-            result2 = localSearch(result2, edgeThreshold);
+            result = localSearch(result, edgeThreshold);
         }
+        adapted_result = adapt_result(result);
 
+        // bruteforce
+        System.out.println("Score : " + Evaluator.score(adapted_result));
+        for (int i = 0; i < 100000; i++){
+            result = bruteForce_window(result, 3);
+        }
+        adapted_result = adapt_result(result);
+        System.out.println("Score : " + Evaluator.score(adapted_result));
+
+        for (int i = 0; i < 30000; i++){
+            result = bruteForce_window(result, 5);
+        }
+        adapted_result = adapt_result(result);
+        System.out.println("Score : " + Evaluator.score(adapted_result));
+
+        for (int i = 0; i < 300; i++){
+            result = bruteForce_window(result, 8);
+        }
+        adapted_result = adapt_result(result);
+        System.out.println("Score : " + Evaluator.score(adapted_result));
+
+        for (int i = 0; i < 90; i++){
+            result = bruteForce_window(result, 10);
+        }
+        adapted_result = adapt_result(result);
+        System.out.println("Score : " + Evaluator.score(adapted_result));
+
+        return adapted_result;
+    }
+
+    private ArrayList<Point> adapt_result(ArrayList<Point> list){
         ArrayList<Point> adapted_result = new ArrayList<>();
-        ArrayList<Integer> tmp_list = new ArrayList<>();
-        for (int i = 0; i < result2.size(); i++) {
-            tmp_list.add(result.indexOf(result2.get(i)));
-            adapted_result.addAll(getShortestPaths(result2.get(i), result2.get((i + 1) % result2.size())));
+        for (int i = 0; i < list.size(); i++) {
+            adapted_result.addAll(getShortestPaths(list.get(i), list.get((i + 1) % list.size())));
         }
-
-//        System.out.println("Comparaison index finaux : " + tmp_list);
-
         return adapted_result;
     }
 
@@ -105,10 +114,6 @@ public class DefaultTeam {
 
     // local search
     private ArrayList<Point> localSearch(ArrayList<Point> current, int edgeThreshold) {
-        //ArrayList<Point> current = new ArrayList<>(new HashSet<>(firstSolution)); // pr virer tout doublon
-
-        // TODO : est ce qu'il ne faudrait pas faire des %(current.size() - 1) au lieu de %current.size() ??
-
         for (int i = 0; i < current.size() - 1; i++) {
             Point a = current.get(i);
             Point b = current.get((i + 1));
@@ -118,13 +123,6 @@ public class DefaultTeam {
                 Point d = current.get((j + 1) % current.size());
 
                 if (intersect(a, b, c, d)) {
-/*
-                    System.out.println("a : " + a);
-                    System.out.println("b : " + b);
-                    System.out.println("c : " + c);
-                    System.out.println("d : " + d);
-*/
-                    // X -> | |
                     //                  w k l
                     // a   c        z r a   c m p
                     //   X      ->  s   | X |   o
@@ -146,43 +144,29 @@ public class DefaultTeam {
                             break;
                         }
                     }
-                    int tmp = 0;
-                    ArrayList<Integer> tmp_list = new ArrayList<Integer>();
+
                     // Si ça forme bien un seul anneau
                     if(success) {
                         // on va parcourir l'anneau comme il se doit
                         ArrayList<Point> next = new ArrayList<>();
                         next.add(a);
-                        tmp_list.add(i);
                         for (int k = j + 1; k > (j + 1 - current.size()); k--) {
-                            tmp++;
                             next.add(current.get(k % current.size()));
-                            tmp_list.add(k % current.size());
                             if(current.get(k % current.size()).equals(b)) {
-//                                System.out.println(current.get(k % current.size()));
                                 break;
                             }
                         }
-                        System.out.println("success boucle 1 : " + tmp);
-                        tmp = 0;
-
-                        System.out.println(current.get((j + 1) % current.size()));
 
                         for (int k = j; k < (j + current.size()); k++) {
-                            tmp++;
                             if (current.get(k % current.size()).equals(a)) {
                                 break;
                             }
-                            tmp_list.add(k % current.size());
                             next.add(current.get(k % current.size()));
                         }
-//                        System.out.println("success boucle 2 : " + tmp);
-                        tmp = 0;
 
                         return next;
                     }
 
-                    // X -> =
                     // a   d           z r a---c m p
                     //   X      ->     s     X     o
                     // c   b           q g d---b n v
@@ -190,33 +174,20 @@ public class DefaultTeam {
                     // on va parcourir l'anneau comme il se doit
                     ArrayList<Point> next = new ArrayList<>();
                     next.add(a);
-                    tmp_list.add(i);
                     for (int k = j ; k > (j - current.size()); k--) {
-                        tmp++;
                         next.add(current.get(k % current.size()));
-                        tmp_list.add(k % current.size());
                         if (current.get(k % current.size()).equals(b)) {
-//                            System.out.println(current.get(k % current.size()));
                             break;
                         }
                         
                     }
-//                    System.out.println("non success boucle 1 : " + tmp);
-                    tmp = 0;
-
-//                    System.out.println(current.get((j + 1) % current.size()));
 
                     for (int k = j + 1; k < (j + 1 + current.size()); k++) {
-                        tmp++;
                         if (current.get(k % current.size()).equals(a)) {
                             break;
                         }
                         next.add(current.get(k % current.size()));
-                        tmp_list.add(k % current.size());
                     }
-//                    System.out.println("non success boucle 2 : " + tmp);
-                    tmp = 0;
-//                    System.out.println("indexes : " + tmp_list);
 
                     return next;
                 }
@@ -245,8 +216,6 @@ public class DefaultTeam {
             result.add(points.get(current));
             current = shortestPaths[current][goal];
         }
-
-        //result.add(points.get(current));
 
         return result;
     }
@@ -310,5 +279,35 @@ public class DefaultTeam {
         }
 
         return paths;
+    }
+
+    protected ArrayList<Point> bruteForce_window(ArrayList<Point> current_list, int window) {
+        if (window >= current_list.size()) return current_list;
+
+        Random random_generator = new Random();
+        int r_num = random_generator.nextInt(current_list.size() - 1);
+
+        double current_score = Evaluator.score(current_list);
+        double new_score = Integer.MAX_VALUE;
+
+        ArrayList<Point> liste = current_list;
+
+        // mettre un for avec toutes les permutations possibles
+        while (current_score < new_score) {
+            liste = new ArrayList<>(current_list);
+            ArrayList<Point> temp_list = new ArrayList<>();
+            for (int i = r_num; i < r_num + window; i++) {
+                temp_list.add(liste.get(i % liste.size()));
+            }
+            Collections.shuffle(temp_list);
+
+            for (int i = r_num; i < r_num + window; i++) {
+                liste.set(i % liste.size(), temp_list.remove(0));
+            }
+
+            new_score = Evaluator.score(liste);
+        }
+
+        return liste;
     }
 }

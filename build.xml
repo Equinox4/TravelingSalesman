@@ -42,6 +42,7 @@
         </java>
     <jar basedir="." jarfile="../TME_diskGraphs_${DSTAMP}.jar"/>
   </target>
+  <!--
   <target name="goTest" depends="compile"
         description="generate examples">
         <java classname="algorithms.TestBedEvaluator"
@@ -59,6 +60,8 @@
     	  <arg value="55"/>
         </java>
   </target>
+  -->
+  
 
   <target name="clean"
         description="clean up" >	
