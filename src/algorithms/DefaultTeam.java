@@ -47,33 +47,57 @@ public class DefaultTeam {
         }
         adapted_result = adapt_result(result);
 
+        long startTime = System.currentTimeMillis();
+
         // bruteforce
-        System.out.println("Score : " + Evaluator.score(adapted_result));
-        for (int i = 0; i < 100000; i++){
+        //System.out.println("Score [" + ((System.currentTimeMillis() - startTime)/1000) + "]: " + Evaluator.score(adapted_result));
+        for (int i = 0; i < 10000; i++){
             result = bruteForce_window(result, 3);
         }
         adapted_result = adapt_result(result);
-        System.out.println("Score : " + Evaluator.score(adapted_result));
+        //System.out.println("Score [" + ((System.currentTimeMillis() - startTime)/1000) + "]: " + Evaluator.score(adapted_result));
 
         for (int i = 0; i < 30000; i++){
             result = bruteForce_window(result, 5);
         }
         adapted_result = adapt_result(result);
-        System.out.println("Score : " + Evaluator.score(adapted_result));
+        //System.out.println("Score [" + ((System.currentTimeMillis() - startTime)/1000) + "]: " + Evaluator.score(adapted_result));
+
+        for (int i = 0; i < 10000; i++){
+            result = bruteForce_window(result, 6);
+            adapted_result = adapt_result(result);
+
+            //System.out.println("Score : [" + 7 + "][" + ((System.currentTimeMillis() - startTime)/1000) + "] " + Evaluator.score(adapted_result));
+        }
+       
+        for (int i = 0; i < 3000; i++){
+            result = bruteForce_window(result, 7);
+            adapted_result = adapt_result(result);
+            if(((System.currentTimeMillis() - startTime)/1000) > 100) break;
+            //System.out.println("Score : [" + 7 + "][" + ((System.currentTimeMillis() - startTime)/1000) + "] " + Evaluator.score(adapted_result));
+        }
+        /*
 
         for (int i = 0; i < 300; i++){
             result = bruteForce_window(result, 8);
+            adapted_result = adapt_result(result);
+            System.out.println("Score : [" + 8 + "][" + ((System.currentTimeMillis() - startTime)/1000) + "] " + Evaluator.score(adapted_result));
         }
         adapted_result = adapt_result(result);
         System.out.println("Score : " + Evaluator.score(adapted_result));
 
         for (int i = 0; i < 90; i++){
             result = bruteForce_window(result, 10);
+            adapted_result = adapt_result(result);
+            System.out.println("Score [" + 10 + "][" + ((System.currentTimeMillis() - startTime)/1000) + "] : " + Evaluator.score(adapted_result));
         }
         adapted_result = adapt_result(result);
         System.out.println("Score : " + Evaluator.score(adapted_result));
+        */
 
         return adapted_result;
+
+        //  [java] Score : 7846.960937699307
     }
 
     private ArrayList<Point> adapt_result(ArrayList<Point> list){
