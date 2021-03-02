@@ -1,9 +1,7 @@
-package supportGUI;
+package algorithms;
 
 import java.awt.Point;
 import java.util.ArrayList;
-
-//import supportGUI.
 
 public class Evaluator {
   public static boolean isValid(ArrayList<Point>points, ArrayList<Point>inpts, ArrayList<Point> hp, int edgeThreshold){

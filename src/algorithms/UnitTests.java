@@ -1,8 +1,12 @@
+package algorithms;
+
+import java.awt.Point;
+
 public class UnitTests {
     public static void unit_tests() {
         try {
-            assertEqualsDouble(vector_norm(new Point(0, 0), new Point(0, 2)), 2.00); // peut rater à cause de la précision
-            assertEqualsDouble(vector_norm(new Point(0, 0), new Point(2, 3)), Math.sqrt(13)); // peut rater à cause de la précision
+            assertEqualsDouble(DefaultTeam.vector_norm(new Point(0, 0), new Point(0, 2)), 2.00); // peut rater à cause de la précision
+            assertEqualsDouble(DefaultTeam.vector_norm(new Point(0, 0), new Point(2, 3)), Math.sqrt(13)); // peut rater à cause de la précision
 
         } catch (Exception e) {
             System.exit(1);

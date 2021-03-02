@@ -24,7 +24,6 @@
     	<arg value="1000"/>
     	<arg value="-edgeThreshold"/>
     	<arg value="55"/>
-        <!--            <arg value="-proxyPPTI"/>   -->
     </java>
   </target>
 
@@ -32,32 +31,6 @@
         description="Generer la distribution" >
     <!-- tout mettre dans l'archive -->
     <jar basedir="." jarfile="../TME_diskGraphs_${DSTAMP}.jar"/>
-  </target>
-  <target name="goTest" depends="compile"
-        description="generate examples">
-        <java classname="algorithms.TestBedEvaluator"
-          classpath="${build}/:jars/*" fork="true">
-    	  <arg value="-edgeThreshold"/>
-    	  <arg value="55"/>
-        </java>
-    <jar basedir="." jarfile="../TME_diskGraphs_${DSTAMP}.jar"/>
-  </target>
-  <target name="goTest" depends="compile"
-        description="generate examples">
-        <java classname="algorithms.TestBedEvaluator"
-          classpath="${build}/:jars/*" fork="true">
-    	  <arg value="-edgeThreshold"/>
-    	  <arg value="55"/>
-        </java>
-    <jar basedir="." jarfile="../TME_diskGraphs_${DSTAMP}.jar"/>
-  </target>
-  <target name="goTest" depends="compile"
-        description="generate examples">
-        <java classname="algorithms.TestBedEvaluator"
-          classpath="${build}/:jars/*" fork="true">
-    	  <arg value="-edgeThreshold"/>
-    	  <arg value="55"/>
-        </java>
   </target>
 
   <target name="clean"
