@@ -7,8 +7,8 @@ import java.util.Random;
 import java.util.Collections;
 
 public class DefaultTeam {
-    protected int[][] shortestPaths;
-    protected ArrayList<Point> points;
+    protected static int[][] shortestPaths;
+    protected static ArrayList<Point> points;
 
     public ArrayList<Point> calculAngularTSP(ArrayList<Point> points, int edgeThreshold, ArrayList<Point> hitPoints) {
         // lancer les tests unitaires 
@@ -42,17 +42,49 @@ public class DefaultTeam {
         }
 
         long startTime = System.currentTimeMillis();
+
         
-        
-        for (int i = 0; i < 100; i++){
-            result = bruteForce_window(result, 10);
+        double tmp_score = Evaluator.score(adapted_result);
+        adapted_result = adapt_result(result);
+        String gains = "-" + tmp_score;
+        for (int i = 0; i < 15; i++){
+            result = bruteForce_window(result, 8);
             //System.out.println("1");
             adapted_result = adapt_result(result);
             //if(((System.currentTimeMillis() - startTime)/1000) > 100) break;
-            System.out.println("Score : [" + 10 + "][" + ((System.currentTimeMillis() - startTime)/1000) + "] " + Evaluator.score(adapted_result));
+            System.out.println("Score multi : [" + 9 + "][" + ((System.currentTimeMillis() - startTime)/1000) + "] " + Evaluator.score(adapted_result));
         }
         //7628.387024796853 -> juste fenetre de 7 1000x
+        gains += "\na" + (tmp_score - Evaluator.score(adapted_result));
+        tmp_score = Evaluator.score(adapted_result);
+        System.out.println(gains);
 
+        for (int i = 0; i < 12; i++){
+            result = all_cores_bruteForce(result, 10);
+            //System.out.println("1");
+            adapted_result = adapt_result(result);
+            //if(((System.currentTimeMillis() - startTime)/1000) > 100) break;
+            System.out.println("Score multi : [" + 10 + "][" + ((System.currentTimeMillis() - startTime)/1000) + "] " + Evaluator.score(adapted_result));
+        }
+
+        /*
+        gains += "\nb" + (tmp_score - Evaluator.score(adapted_result));
+        tmp_score = Evaluator.score(adapted_result);
+        System.out.println(gains);
+        for (int i = 0; i < 10; i++){
+            result = all_cores_bruteForce(result, 9);
+            //System.out.println("1");
+            adapted_result = adapt_result(result);
+            //if(((System.currentTimeMillis() - startTime)/1000) > 100) break;
+            System.out.println("Score multi : [" + 9 + "][" + ((System.currentTimeMillis() - startTime)/1000) + "] " + Evaluator.score(adapted_result));
+        }
+        
+
+
+
+        gains += "\nc" + (tmp_score - Evaluator.score(adapted_result));
+        tmp_score = Evaluator.score(adapted_result);
+        System.out.println(gains);
         for (int i = 0; i < 1000; i++){
             result = bruteForce_window(result, 7);
             //System.out.println("1");
@@ -60,6 +92,9 @@ public class DefaultTeam {
             //if(((System.currentTimeMillis() - startTime)/1000) > 100) break;
             System.out.println("Score : [" + 7 + "][" + ((System.currentTimeMillis() - startTime)/1000) + "] " + Evaluator.score(adapted_result));
         }
+        gains += "\nd" + (tmp_score - Evaluator.score(adapted_result));
+        tmp_score = Evaluator.score(adapted_result);
+        System.out.println(gains);
 
 
         for (int i = 0; i < 30000; i++){
@@ -69,6 +104,10 @@ public class DefaultTeam {
             //if(((System.currentTimeMillis() - startTime)/1000) > 100) break;
             System.out.println("Score : [" + 7 + "][" + ((System.currentTimeMillis() - startTime)/1000) + "] " + Evaluator.score(adapted_result));
         }
+        gains += "\ne" + (tmp_score - Evaluator.score(adapted_result));
+        tmp_score = Evaluator.score(adapted_result);
+        System.out.println(gains);
+        */
         
 
         // localsearch
@@ -77,35 +116,60 @@ public class DefaultTeam {
         }
         adapted_result = adapt_result(result);
 
+        gains += "\nf" + (tmp_score - Evaluator.score(adapted_result));
+        tmp_score = Evaluator.score(adapted_result);
+        System.out.println(gains);
+
 
         // bruteforce
         // 7846.960937699307 -> sans brute avant decroisement
         //System.out.println("Score [" + ((System.currentTimeMillis() - startTime)/1000) + "]: " + Evaluator.score(adapted_result));
+        /*
         for (int i = 0; i < 10000; i++){
             result = bruteForce_window(result, 3);
         }
         adapted_result = adapt_result(result);
         //System.out.println("Score [" + ((System.currentTimeMillis() - startTime)/1000) + "]: " + Evaluator.score(adapted_result));
+        gains += "\ng" + (tmp_score - Evaluator.score(adapted_result));
+        tmp_score = Evaluator.score(adapted_result);
+        System.out.println(gains);
 
         for (int i = 0; i < 30000; i++){
             result = bruteForce_window(result, 5);
         }
         adapted_result = adapt_result(result);
         //System.out.println("Score [" + ((System.currentTimeMillis() - startTime)/1000) + "]: " + Evaluator.score(adapted_result));
+        gains += "\nh" + (tmp_score - Evaluator.score(adapted_result));
+        tmp_score = Evaluator.score(adapted_result);
+        System.out.println(gains);
+        */
 
+        /*
         for (int i = 0; i < 10000; i++){
             result = bruteForce_window(result, 6);
             adapted_result = adapt_result(result);
 
             System.out.println("Score : [" + 7 + "][" + ((System.currentTimeMillis() - startTime)/1000) + "] " + Evaluator.score(adapted_result));
         }
+        */
+
+        for (int i = 0; i < 20; i++){
+            result = all_cores_bruteForce(result, 10);
+            //System.out.println("1");
+            adapted_result = adapt_result(result);
+            //if(((System.currentTimeMillis() - startTime)/1000) > 100) break;
+            System.out.println("Score multi : [" + 10 + "][" + ((System.currentTimeMillis() - startTime)/1000) + "] " + Evaluator.score(adapted_result));
+        }
        
-        for (int i = 0; i < 3000; i++){
+        for (int i = 0; i < 300; i++){
             result = bruteForce_window(result, 7);
             adapted_result = adapt_result(result);
             //if(((System.currentTimeMillis() - startTime)/1000) > 100) break;
             System.out.println("Score : [" + 7 + "][" + ((System.currentTimeMillis() - startTime)/1000) + "] " + Evaluator.score(adapted_result));
         }
+        gains += "\na" + (tmp_score - Evaluator.score(adapted_result));
+        tmp_score = Evaluator.score(adapted_result);
+        System.out.println(gains);
         /*
 
         for (int i = 0; i < 300; i++){
@@ -130,7 +194,7 @@ public class DefaultTeam {
         //  [java] Score : 7846.960937699307
     }
 
-    private ArrayList<Point> adapt_result(ArrayList<Point> list){
+    protected static ArrayList<Point> adapt_result(ArrayList<Point> list){
         ArrayList<Point> adapted_result = new ArrayList<>();
         for (int i = 0; i < list.size(); i++) {
             adapted_result.addAll(getShortestPaths(list.get(i), list.get((i + 1) % list.size())));
@@ -190,10 +254,10 @@ public class DefaultTeam {
                     // On rebrousse chemin pour essayer d'aller de c à b
                     for (int k = i; k > (i + current.size()); k--) {
                         // Si on retombe sur a avant de tomber sur b ça veut dire qu'on a 2 anneaux
-                        if(current.get(k % current.size()).equals(d)) {
+                        if (current.get(k % current.size()).equals(d)) {
                             break;
                         }
-                        else if(current.get(k % current.size()).equals(c)) {
+                        else if (current.get(k % current.size()).equals(c)) {
                             success = true;
                             break;
                         }
@@ -233,7 +297,6 @@ public class DefaultTeam {
                         if (current.get(k % current.size()).equals(b)) {
                             break;
                         }
-                        
                     }
 
                     for (int k = j + 1; k < (j + 1 + current.size()); k++) {
@@ -260,7 +323,7 @@ public class DefaultTeam {
         return ccw(a, c, d) != ccw(b, c, d) && ccw(a, b, c) != ccw(a, b, d);
     }
 
-    private ArrayList<Point> getShortestPaths(Point p1, Point p2){
+    private static ArrayList<Point> getShortestPaths(Point p1, Point p2){
         ArrayList<Point> result = new ArrayList<>();
 
         int goal = points.indexOf(p2);
@@ -274,7 +337,7 @@ public class DefaultTeam {
         return result;
     }
 
-    private double real_distance(Point p1, Point p2) {
+    private static double real_distance(Point p1, Point p2) {
         int result = 0;
 
         ArrayList<Point> chemin = getShortestPaths(p1, p2);
@@ -295,7 +358,7 @@ public class DefaultTeam {
      * @param edgeThreshold
      * @return une matrice à deux dimensions
      */
-    public int[][] calculShortestPaths(int edgeThreshold) {
+    public static int[][] calculShortestPaths(int edgeThreshold) {
         int[][] paths = new int[points.size()][points.size()];
         for (int i= 0; i < paths.length; i++) {
             for (int j = 0; j < paths.length; j++) {
@@ -335,7 +398,7 @@ public class DefaultTeam {
         return paths;
     }
 
-    protected ArrayList<Point> bruteForce_window(ArrayList<Point> current_list, int window) {
+    protected static ArrayList<Point> bruteForce_window(ArrayList<Point> current_list, int window) {
         if (window >= current_list.size()) return current_list;
 
         Random random_generator = new Random();
@@ -347,6 +410,7 @@ public class DefaultTeam {
         ArrayList<Point> liste = current_list;
 
         //System.out.print("a");
+        long startTime = System.currentTimeMillis();
 
         // mettre un for avec toutes les permutations possibles
         while (current_score < new_score) {
@@ -363,6 +427,8 @@ public class DefaultTeam {
                 liste.set(i % liste.size(), temp_list.remove(0));
             }
 
+            if(((System.currentTimeMillis() - startTime)/1000) > 15) break;
+
             //System.out.print("+");
 
             new_score = Evaluator.score(liste);
@@ -373,21 +439,45 @@ public class DefaultTeam {
 
     // Held–Karp algorithm
     public ArrayList<Point> hka(ArrayList<Point> window) {
-        
+/*
+function algorithm TSP (G, n) is
+    for k := 2 to n do
+        C({k}, k) := d1,k
+    end for
+
+    for s := 2 to n−1 do
+        for all S ⊆ {2, . . . , n}, |S| = s do
+            for all k ∈ S do
+                C(S, k) := minm≠k,m∈S [C(S\{k}, m) + dm,k]
+            end for
+        end for
+    end for
+
+    opt := mink≠1 [C({2, 3, . . . , n}, k) + dk, 1]
+    return (opt)
+end function
+*/
         return null;
     }
 
 
-    private ArrayList<Point> all_cores_bruteForce(ArrayList<Point> liste){
-        ThreadGroup tg = new ThreadGroup("main");
+    private static ArrayList<Point> all_cores_bruteForce(ArrayList<Point> liste, int window){
+        ArrayList<Point> adapted_result = adapt_result(liste);
+        double score_liste = Evaluator.score(adapted_result);
 
-        List<Simulation> sims = new ArrayList<Simulation>();
-        for (int i=0;i<np;i++) sims.add(new Simulation(n, result, points, edgeThreshold,"PI"+i, tg));
+
+        ArrayList<Point> result = liste;
+
+        ThreadGroup tg = new ThreadGroup("main");
+        int np = Runtime.getRuntime().availableProcessors();
+
+        ArrayList<MultiCPUProcess> sims = new ArrayList<MultiCPUProcess>();
+        for (int i=0;i<np;i++) sims.add(new MultiCPUProcess(tg, "proces"+i, liste, window));
 
         int i=0;
         while (i<sims.size()){
             if (tg.activeCount()<np){ // do we have available CPUs?
-                Simulation sim = sims.get(i);
+                MultiCPUProcess sim = sims.get(i);
                 sim.start();
                 i++;
             } else {
@@ -397,25 +487,22 @@ public class DefaultTeam {
 
         }
 
-        // on ne va pas attendre que tous les threads terminent pour commencer à récupérer les résultats
-        /*
-        while(tg.activeCount()>0) { // wait for threads to finish
-            try {Thread.sleep(100);}
-            catch (InterruptedException e) {e.printStackTrace();}
-        }
-        */
+    
 
         while(tg.activeCount()>0){
             for (i=0;i<sims.size();i++) {
-                Simulation sim = sims.get(i);
-                ArrayList<Point> sim_result = sim.getResult();
-                if(sim_result != null && sim_result.size() < result.size()){
-                    result = sim_result;
-                    for(Simulation sim_to_stop : sims){
+                MultiCPUProcess sim = sims.get(i);
+                double score_tmp = sim.getScore();
+                if((score_tmp != -1) && (score_tmp < score_liste)){
+                    result = sim.getListe();
+                    for(MultiCPUProcess sim_to_stop : sims){
                         sim_to_stop.stop();
                     }
                 }
             }
         }
+        return result;
     }
+
+    
 }
