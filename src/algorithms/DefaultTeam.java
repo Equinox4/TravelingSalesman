@@ -42,7 +42,7 @@ public class DefaultTeam {
             rest.remove(next);
         }
 
-        ArrayList<Point> best_result = result;
+        ArrayList<Point> best_result = adapt_result(result);
         long startTime = System.currentTimeMillis();
 
         
