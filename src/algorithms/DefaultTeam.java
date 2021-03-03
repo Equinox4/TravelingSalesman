@@ -55,7 +55,7 @@ public class DefaultTeam {
         tmp_score = Evaluator.score(adapted_result);
         System.out.println(gains);
 
-        for (int i = 0; i < 200; i++){
+        for (int i = 0; i < 2000; i++){
             result = all_cores_bruteForce(result, 10);
             /*
             if(Evaluator.score(adapt_result(result)) > Evaluator.score(adapt_result(tmp_result))){
@@ -70,7 +70,7 @@ public class DefaultTeam {
             if(((System.currentTimeMillis() - startTime)/1000) > 250) break;
         }
 
-        for (int i = 0; i < 15; i++){
+        for (int i = 0; i < 2000; i++){
             result = bruteForce_window(result, 9);
             //System.out.println("1");
             adapted_result = adapt_result(result);
@@ -123,7 +123,7 @@ public class DefaultTeam {
         
 
         // localsearch
-        for (int i = 0; i < 100; i++){
+        for (int i = 0; i < 2000; i++){
             result = localSearch(result, edgeThreshold);
         }
         adapted_result = adapt_result(result);
@@ -166,7 +166,7 @@ public class DefaultTeam {
         }
         */
 
-        for (int i = 0; i < 20; i++){
+        for (int i = 0; i < 2000; i++){
             result = all_cores_bruteForce(result, 10);
             //System.out.println("1");
             adapted_result = adapt_result(result);
@@ -176,7 +176,7 @@ public class DefaultTeam {
             if(((System.currentTimeMillis() - startTime)/1000) > 330) break;
         }
        
-        for (int i = 0; i < 100; i++){
+        for (int i = 0; i < 2000; i++){
             result = bruteForce_window(result, 7);
             adapted_result = adapt_result(result);
             //if(((System.currentTimeMillis() - startTime)/1000) > 100) break;
