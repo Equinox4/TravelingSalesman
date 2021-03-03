@@ -41,15 +41,45 @@ public class DefaultTeam {
             rest.remove(next);
         }
 
+        long startTime = System.currentTimeMillis();
+        
+        
+        for (int i = 0; i < 100; i++){
+            result = bruteForce_window(result, 10);
+            //System.out.println("1");
+            adapted_result = adapt_result(result);
+            //if(((System.currentTimeMillis() - startTime)/1000) > 100) break;
+            System.out.println("Score : [" + 10 + "][" + ((System.currentTimeMillis() - startTime)/1000) + "] " + Evaluator.score(adapted_result));
+        }
+        //7628.387024796853 -> juste fenetre de 7 1000x
+
+        for (int i = 0; i < 1000; i++){
+            result = bruteForce_window(result, 7);
+            //System.out.println("1");
+            adapted_result = adapt_result(result);
+            //if(((System.currentTimeMillis() - startTime)/1000) > 100) break;
+            System.out.println("Score : [" + 7 + "][" + ((System.currentTimeMillis() - startTime)/1000) + "] " + Evaluator.score(adapted_result));
+        }
+
+
+        for (int i = 0; i < 30000; i++){
+            result = bruteForce_window(result, 5);
+            //System.out.println("1");
+            adapted_result = adapt_result(result);
+            //if(((System.currentTimeMillis() - startTime)/1000) > 100) break;
+            System.out.println("Score : [" + 7 + "][" + ((System.currentTimeMillis() - startTime)/1000) + "] " + Evaluator.score(adapted_result));
+        }
+        
+
         // localsearch
         for (int i = 0; i < 100; i++){
             result = localSearch(result, edgeThreshold);
         }
         adapted_result = adapt_result(result);
 
-        long startTime = System.currentTimeMillis();
 
         // bruteforce
+        // 7846.960937699307 -> sans brute avant decroisement
         //System.out.println("Score [" + ((System.currentTimeMillis() - startTime)/1000) + "]: " + Evaluator.score(adapted_result));
         for (int i = 0; i < 10000; i++){
             result = bruteForce_window(result, 3);
@@ -67,14 +97,14 @@ public class DefaultTeam {
             result = bruteForce_window(result, 6);
             adapted_result = adapt_result(result);
 
-            //System.out.println("Score : [" + 7 + "][" + ((System.currentTimeMillis() - startTime)/1000) + "] " + Evaluator.score(adapted_result));
+            System.out.println("Score : [" + 7 + "][" + ((System.currentTimeMillis() - startTime)/1000) + "] " + Evaluator.score(adapted_result));
         }
        
         for (int i = 0; i < 3000; i++){
             result = bruteForce_window(result, 7);
             adapted_result = adapt_result(result);
-            if(((System.currentTimeMillis() - startTime)/1000) > 100) break;
-            //System.out.println("Score : [" + 7 + "][" + ((System.currentTimeMillis() - startTime)/1000) + "] " + Evaluator.score(adapted_result));
+            //if(((System.currentTimeMillis() - startTime)/1000) > 100) break;
+            System.out.println("Score : [" + 7 + "][" + ((System.currentTimeMillis() - startTime)/1000) + "] " + Evaluator.score(adapted_result));
         }
         /*
 
@@ -316,6 +346,8 @@ public class DefaultTeam {
 
         ArrayList<Point> liste = current_list;
 
+        //System.out.print("a");
+
         // mettre un for avec toutes les permutations possibles
         while (current_score < new_score) {
             liste = new ArrayList<>(current_list);
@@ -325,13 +357,65 @@ public class DefaultTeam {
             }
             Collections.shuffle(temp_list);
 
+            //System.out.print("-");
+
             for (int i = r_num; i < r_num + window; i++) {
                 liste.set(i % liste.size(), temp_list.remove(0));
             }
+
+            //System.out.print("+");
 
             new_score = Evaluator.score(liste);
         }
 
         return liste;
+    }
+
+    // Held–Karp algorithm
+    public ArrayList<Point> hka(ArrayList<Point> window) {
+        
+        return null;
+    }
+
+
+    private ArrayList<Point> all_cores_bruteForce(ArrayList<Point> liste){
+        ThreadGroup tg = new ThreadGroup("main");
+
+        List<Simulation> sims = new ArrayList<Simulation>();
+        for (int i=0;i<np;i++) sims.add(new Simulation(n, result, points, edgeThreshold,"PI"+i, tg));
+
+        int i=0;
+        while (i<sims.size()){
+            if (tg.activeCount()<np){ // do we have available CPUs?
+                Simulation sim = sims.get(i);
+                sim.start();
+                i++;
+            } else {
+                try {Thread.sleep(100);} /*wait 0.1 second before checking again*/
+                catch (InterruptedException e) {e.printStackTrace();}
+            }
+
+        }
+
+        // on ne va pas attendre que tous les threads terminent pour commencer à récupérer les résultats
+        /*
+        while(tg.activeCount()>0) { // wait for threads to finish
+            try {Thread.sleep(100);}
+            catch (InterruptedException e) {e.printStackTrace();}
+        }
+        */
+
+        while(tg.activeCount()>0){
+            for (i=0;i<sims.size();i++) {
+                Simulation sim = sims.get(i);
+                ArrayList<Point> sim_result = sim.getResult();
+                if(sim_result != null && sim_result.size() < result.size()){
+                    result = sim_result;
+                    for(Simulation sim_to_stop : sims){
+                        sim_to_stop.stop();
+                    }
+                }
+            }
+        }
     }
 }
