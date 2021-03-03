@@ -22,6 +22,7 @@ public class DefaultTeam {
         ArrayList<Point> adapted_result = new ArrayList<>();
         ArrayList<Point> rest = new ArrayList<>();
         rest.addAll(hitPoints);
+        
 
         // Greedy
         int start = 5;
@@ -41,6 +42,7 @@ public class DefaultTeam {
             rest.remove(next);
         }
 
+        ArrayList<Point> best_result = result;
         long startTime = System.currentTimeMillis();
 
         
@@ -64,7 +66,8 @@ public class DefaultTeam {
             adapted_result = adapt_result(result);
             //if(((System.currentTimeMillis() - startTime)/1000) > 100) break;
             System.out.println("Score multi : [" + 10 + "][" + ((System.currentTimeMillis() - startTime)/1000) + "] " + Evaluator.score(adapted_result));
-            if(((System.currentTimeMillis() - startTime)/1000) > 120) break;
+            if(Evaluator.score(adapted_result) < Evaluator.score(best_result)) best_result = adapted_result;
+            if(((System.currentTimeMillis() - startTime)/1000) > 250) break;
         }
 
         for (int i = 0; i < 15; i++){
@@ -72,7 +75,8 @@ public class DefaultTeam {
             //System.out.println("1");
             adapted_result = adapt_result(result);
             System.out.println("Score multi : [" + 9 + "][" + ((System.currentTimeMillis() - startTime)/1000) + "] " + Evaluator.score(adapted_result));
-            if(((System.currentTimeMillis() - startTime)/1000) > 140) break;
+            if(Evaluator.score(adapted_result) < Evaluator.score(best_result)) best_result = adapted_result;
+            if(((System.currentTimeMillis() - startTime)/1000) > 275) break;
         }
 
         /*
@@ -123,6 +127,7 @@ public class DefaultTeam {
             result = localSearch(result, edgeThreshold);
         }
         adapted_result = adapt_result(result);
+        if(Evaluator.score(adapted_result) < Evaluator.score(best_result)) best_result = adapted_result;
 
         gains += "\nf" + (tmp_score - Evaluator.score(adapted_result));
         tmp_score = Evaluator.score(adapted_result);
@@ -167,7 +172,8 @@ public class DefaultTeam {
             adapted_result = adapt_result(result);
             //if(((System.currentTimeMillis() - startTime)/1000) > 100) break;
             System.out.println("Score multi post : [" + 10 + "][" + ((System.currentTimeMillis() - startTime)/1000) + "] " + Evaluator.score(adapted_result));
-            if(((System.currentTimeMillis() - startTime)/1000) > 185) break;
+            if(Evaluator.score(adapted_result) < Evaluator.score(best_result)) best_result = adapted_result;
+            if(((System.currentTimeMillis() - startTime)/1000) > 330) break;
         }
        
         for (int i = 0; i < 100; i++){
@@ -175,7 +181,8 @@ public class DefaultTeam {
             adapted_result = adapt_result(result);
             //if(((System.currentTimeMillis() - startTime)/1000) > 100) break;
             System.out.println("Score post : [" + 7 + "][" + ((System.currentTimeMillis() - startTime)/1000) + "] " + Evaluator.score(adapted_result));
-            if(((System.currentTimeMillis() - startTime)/1000) > 200) break;
+            if(Evaluator.score(adapted_result) < Evaluator.score(best_result)) best_result = adapted_result;
+            if(((System.currentTimeMillis() - startTime)/1000) > 350) break;
         }
         
         
@@ -198,7 +205,7 @@ public class DefaultTeam {
         System.out.println("Score : " + Evaluator.score(adapted_result));
         */
 
-        return adapted_result;
+        return best_result;
 
         //  [java] Score : 7846.960937699307
     }
