@@ -47,24 +47,32 @@ public class DefaultTeam {
         double tmp_score = Evaluator.score(adapted_result);
         adapted_result = adapt_result(result);
         String gains = "-" + tmp_score;
-        for (int i = 0; i < 15; i++){
-            result = bruteForce_window(result, 8);
-            //System.out.println("1");
-            adapted_result = adapt_result(result);
-            //if(((System.currentTimeMillis() - startTime)/1000) > 100) break;
-            System.out.println("Score multi : [" + 9 + "][" + ((System.currentTimeMillis() - startTime)/1000) + "] " + Evaluator.score(adapted_result));
-        }
+        
         //7628.387024796853 -> juste fenetre de 7 1000x
         gains += "\na" + (tmp_score - Evaluator.score(adapted_result));
         tmp_score = Evaluator.score(adapted_result);
         System.out.println(gains);
 
-        for (int i = 0; i < 12; i++){
+        for (int i = 0; i < 200; i++){
             result = all_cores_bruteForce(result, 10);
+            /*
+            if(Evaluator.score(adapt_result(result)) > Evaluator.score(adapt_result(tmp_result))){
+                result = tmp_result;
+            }
+            */
             //System.out.println("1");
             adapted_result = adapt_result(result);
             //if(((System.currentTimeMillis() - startTime)/1000) > 100) break;
             System.out.println("Score multi : [" + 10 + "][" + ((System.currentTimeMillis() - startTime)/1000) + "] " + Evaluator.score(adapted_result));
+            if(((System.currentTimeMillis() - startTime)/1000) > 120) break;
+        }
+
+        for (int i = 0; i < 15; i++){
+            result = bruteForce_window(result, 9);
+            //System.out.println("1");
+            adapted_result = adapt_result(result);
+            System.out.println("Score multi : [" + 9 + "][" + ((System.currentTimeMillis() - startTime)/1000) + "] " + Evaluator.score(adapted_result));
+            if(((System.currentTimeMillis() - startTime)/1000) > 140) break;
         }
 
         /*
@@ -158,18 +166,19 @@ public class DefaultTeam {
             //System.out.println("1");
             adapted_result = adapt_result(result);
             //if(((System.currentTimeMillis() - startTime)/1000) > 100) break;
-            System.out.println("Score multi : [" + 10 + "][" + ((System.currentTimeMillis() - startTime)/1000) + "] " + Evaluator.score(adapted_result));
+            System.out.println("Score multi post : [" + 10 + "][" + ((System.currentTimeMillis() - startTime)/1000) + "] " + Evaluator.score(adapted_result));
+            if(((System.currentTimeMillis() - startTime)/1000) > 185) break;
         }
        
-        for (int i = 0; i < 300; i++){
+        for (int i = 0; i < 100; i++){
             result = bruteForce_window(result, 7);
             adapted_result = adapt_result(result);
             //if(((System.currentTimeMillis() - startTime)/1000) > 100) break;
-            System.out.println("Score : [" + 7 + "][" + ((System.currentTimeMillis() - startTime)/1000) + "] " + Evaluator.score(adapted_result));
+            System.out.println("Score post : [" + 7 + "][" + ((System.currentTimeMillis() - startTime)/1000) + "] " + Evaluator.score(adapted_result));
+            if(((System.currentTimeMillis() - startTime)/1000) > 200) break;
         }
-        gains += "\na" + (tmp_score - Evaluator.score(adapted_result));
-        tmp_score = Evaluator.score(adapted_result);
-        System.out.println(gains);
+        
+        
         /*
 
         for (int i = 0; i < 300; i++){
@@ -427,11 +436,24 @@ public class DefaultTeam {
                 liste.set(i % liste.size(), temp_list.remove(0));
             }
 
-            if(((System.currentTimeMillis() - startTime)/1000) > 15) break;
+            if(((System.currentTimeMillis() - startTime)/1000) > 15) return current_list;
 
             //System.out.print("+");
-
             new_score = Evaluator.score(liste);
+
+            //System.out.print("\r ");
+            // On ne calcul le nouveau score que si l'approximation semble donner un meilleur score
+            /*
+            if(current_score > new_score){
+                System.out.print("\r.");
+                ArrayList<Point> adapted_result = adapt_result(liste);
+                new_score = Evaluator.score(adapted_result);
+                if(current_score < new_score) {
+                    System.out.print("\r+");
+                    return current_list;
+                }
+            }
+            */
         }
 
         return liste;
