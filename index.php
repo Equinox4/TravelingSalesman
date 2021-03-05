@@ -99,6 +99,24 @@ if (isset($_POST['new_graph'])
     } else {
         $response = "GRAPH_SOLUTION_DOESNT_EXISTS";
     }
+} else if (isset($_GET['solutions'])
+    && isset($_GET['best_of_hash'])) {
+    $response = "";
+
+    // on recherche le meilleur pour ce graphe
+    $stmt = $bdd->prepare('SELECT s.ordered_hit_points as points FROM graph g, solutions s WHERE g.hash = ? AND g.id = s.id_graph ORDER BY s.score ASC LIMIT 1');
+    $stmt->bindParam(1, $_GET['best_of_hash']);
+
+
+
+    if($stmt->execute()){
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+        $points = str_replace("\n", "-", $result["points"]);
+
+        $response .= $points;
+    } else {
+        $response = "GRAPH_SOLUTION_DOESNT_EXISTS";
+    }
 } else if (isset($_GET['missing_solutions'])) {
     $response = "";
 
@@ -119,8 +137,8 @@ if (isset($_POST['new_graph'])
     $stmt = select_a_from_b_where_c_is_d($bdd, "points, hit_points", "graph", "id", $_GET['id']);
     $result = $stmt->fetch(PDO::FETCH_ASSOC);
 
-    $points = $result["points"];
-    $hit_points = $result["hit_points"];
+    $points = str_replace("\n", "-", $result["points"]);
+    $hit_points = str_replace("\n", "-", $result["hit_points"]);
 
     $response = $points . "/" . $hit_points;
 }

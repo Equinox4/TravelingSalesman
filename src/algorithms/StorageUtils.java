@@ -1,6 +1,5 @@
 package algorithms;
 
-import javafx.util.Pair;
 import org.apache.hc.client5.http.classic.HttpClient;
 import org.apache.hc.client5.http.classic.methods.HttpPost;
 import org.apache.hc.client5.http.impl.classic.HttpClients;
@@ -17,6 +16,7 @@ import java.util.regex.Pattern;
 public class StorageUtils {
     private static final String SOLUTION_FILE_REGEX = "solution_([0-9]+?)_([0-9]+?).points";
     private static final String GRAPH_FILE_REGEX = "graph_([0-9]+?).points";
+    private static final int FAKE_ID = 435;
     private static String SERVEUR = "https://voycom.desfichesdescartes.fr/index.php";
     private static String GRAPH_FOLDER = "tests/graphs/";
     private static String SOLUTIONS_FOLDER = "tests/solutions/";
@@ -47,8 +47,40 @@ public class StorageUtils {
         return true;
     }
 
-    public Pair<ArrayList<Point>, ArrayList<Point>> getOneGraphWithNoSolution(){
-        Pair<ArrayList<Point>, ArrayList<Point>> result = null;
+    public boolean saveSolution(int graph_id, ArrayList<Point> best_result) throws Exception {
+        int score = (int) Evaluator.score(best_result);
+
+        HashMap<String, String> parameters = new HashMap<>();
+        parameters.put("new_solution", "");
+        parameters.put("id_graph", "" + graph_id);
+        parameters.put("ordered_hit_points", pointsToString(best_result));
+        parameters.put("score", "" + score);
+        String response = post(SERVEUR, parameters);
+
+        if(response == "ALREADY_PRESENT") new Exception("This exact solution is already present in the DB");
+        else if(!isNumeric(response)) new Exception("Incorrect response from the server : " + response);
+        //int graph_id = Integer.parseInt(response); // juste pour la clareté
+
+        saveToFile(SOLUTIONS_FOLDER + "solution_" + graph_id + "_" + score, best_result);
+
+        return true;
+    }
+
+    public ArrayList<Point> getBestSolution(ArrayList<Point> points, ArrayList<Point> hitPoints) {
+        String md5 = md5(pointsToString(points) + pointsToString(hitPoints));
+
+        HashMap<String, String> parameters = new HashMap<>();
+        parameters.put("solutions", "");
+        parameters.put("best_of_hash", md5);
+        String response = get(SERVEUR, parameters);
+
+        System.out.println("Reponse du serveur : " + response);
+
+        return servPointsParser(response);
+    }
+
+    public Graph getOneGraphWithNoSolution(){
+        Graph result = null;
         try {
             // Si la connexion à la BDD est possible
 
@@ -66,7 +98,7 @@ public class StorageUtils {
             Random random_generator = new Random();
             int r_index = random_generator.nextInt(allGraphWithoutSolution.size() - 1);
 
-            result = getGraphFromId(r_index);
+            result = getGraphFromId(allGraphWithoutSolution.get(r_index));
         } catch(Exception e) {
         } finally {
             // Si la connexion à la BDD n'est pas possible
@@ -78,15 +110,15 @@ public class StorageUtils {
                 Random random_generator = new Random();
                 int r_index = random_generator.nextInt(candidateIds.size() - 1);
 
-                result = getGraphFromId(r_index);
+                result = getGraphFromId(candidateIds.get(r_index));
             }
         }
 
         return result;
     }
 
-    public Pair<ArrayList<Point>, ArrayList<Point>> getOneGraphWithSolution(){
-        Pair<ArrayList<Point>, ArrayList<Point>> result = null;
+    public Graph getOneGraphWithSolution(){
+        Graph result = null;
         try {
             // Si la connexion à la BDD est possible
 
@@ -104,7 +136,7 @@ public class StorageUtils {
             Random random_generator = new Random();
             int r_index = random_generator.nextInt(allGraphWithoutSolution.size() - 1);
 
-            result = getGraphFromId(r_index);
+            result = getGraphFromId(allGraphWithoutSolution.get(r_index));
         } catch(Exception e) {
         } finally {
             // Si la connexion à la BDD n'est pas possible
@@ -116,7 +148,7 @@ public class StorageUtils {
                 Random random_generator = new Random();
                 int r_index = random_generator.nextInt(listOfGraphFilesIds.size() - 1);
 
-                result = getGraphFromId(r_index);
+                result = getGraphFromId(listOfGraphFilesIds.get(r_index));
             }
         }
 
@@ -154,8 +186,9 @@ public class StorageUtils {
     }
 
     // Ajouter support offline
-    public Pair<ArrayList<Point>, ArrayList<Point>> getGraphFromId(int id) {
-        Pair<ArrayList<Point>, ArrayList<Point>> resultat = null;
+    public Graph getGraphFromId(int id) {
+        if(FAKE_ID != -1) id = FAKE_ID;
+        Graph resultat = null;
 
         try {
             HashMap<String, String> parameters = new HashMap<>();
@@ -163,33 +196,24 @@ public class StorageUtils {
             parameters.put("id", "" + id);
             String response = get(SERVEUR, parameters);
 
+            //System.out.println(response);
+
             String[] parts = response.split("/");
             String points_str = parts[0];
             String hitPoints_str = parts[1];
 
             // Lecture de tous les points du graphe
-            Pattern pattern = Pattern.compile("([0-9]+?) ([0-9]+?)");
-            Matcher matcher = pattern.matcher(points_str);
-
-            ArrayList<Point> points = new ArrayList<>();
-            while (matcher.find()) {
-                points.add(new Point(Integer.parseInt(matcher.group(1)), Integer.parseInt(matcher.group(2))));
-            }
+            ArrayList<Point> points = servPointsParser(points_str);
 
             // Lecture de tous les hitPoints du graphe
-            pattern = Pattern.compile("([0-9]+?) ([0-9]+?)");
-            matcher = pattern.matcher(hitPoints_str);
+            ArrayList<Point> hitPoints = servPointsParser(hitPoints_str);
 
-            ArrayList<Point> hitPoints = new ArrayList<>();
-            while (matcher.find()) {
-                hitPoints.add(new Point(Integer.parseInt(matcher.group(1)), Integer.parseInt(matcher.group(2))));
-            }
 
-            resultat = new Pair<>(points, hitPoints);
+            resultat = new Graph(id, points, hitPoints);
         } catch(Exception e) {
         } finally {
             // Ici on part du principe qu'il y a des solutions en local car sinon on serait plutot en mode CREATE_SOLUTION
-            if(resultat == null || resultat.getKey().isEmpty() || resultat.getValue().isEmpty()){
+            if(resultat == null || resultat.points.isEmpty() || resultat.hitPoints.isEmpty()){
                 ArrayList<Point> points = readFromFile(GRAPH_FOLDER + "graph_" + id + ".points");
 
                 List<Integer> listOfSolutionsWithScore = getTopNOfGraphSolutionLocal(id, DefaultTeam.TOP_TO_KEEP);
@@ -199,12 +223,24 @@ public class StorageUtils {
 
                 ArrayList<Point> solution = readFromFile(SOLUTIONS_FOLDER + "solution_" + id + "_" + score + ".points");
 
-                resultat = new Pair<>(points, solution);
+                resultat = new Graph(id, points, solution);
             }
         }
 
 
         return resultat;
+    }
+
+    public ArrayList<Point> servPointsParser(String points_str){
+        Pattern pattern = Pattern.compile("([0-9]+?) ([0-9]+?)-");
+        Matcher matcher = pattern.matcher(points_str);
+
+        ArrayList<Point> points = new ArrayList<>();
+        while (matcher.find()) {
+            points.add(new Point(Integer.parseInt(matcher.group(1)), Integer.parseInt(matcher.group(2))));
+        }
+
+        return points;
     }
 
     /*
@@ -265,6 +301,7 @@ public class StorageUtils {
         Collections.sort(listOfSolutionsScore, new Comparator<Integer>() {
             @Override
             public int compare(Integer o1, Integer o2) {
+                // ordre decroissant
                 return -o1.compareTo(o2);
             }
         });
@@ -444,4 +481,20 @@ public class StorageUtils {
         }
         return points;
     }
+
+    public String md5(String str) {
+        try {
+            java.security.MessageDigest md = java.security.MessageDigest.getInstance("MD5");
+            byte[] array = md.digest(str.getBytes());
+            StringBuffer sb = new StringBuffer();
+            for (int i = 0; i < array.length; ++i) {
+                sb.append(Integer.toHexString((array[i] & 0xFF) | 0x100).substring(1,3));
+            }
+            return sb.toString();
+        } catch (java.security.NoSuchAlgorithmException e) {
+        }
+        return null;
+    }
+
+
 }
