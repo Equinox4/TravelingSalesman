@@ -27,8 +27,8 @@ public class MultiCPUProcess extends Thread {
     }
 
     public void run() {
-        liste = DefaultTeam.bruteForce_window(liste, window);
-        score = Evaluator.score(DefaultTeam.adapt_result(liste));
+        //liste = DefaultTeam.bruteForce_window(liste, window);
+        //score = Evaluator.score(DefaultTeam.adapt_result(liste));
     }
 
 
