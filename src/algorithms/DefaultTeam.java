@@ -4,11 +4,16 @@ import java.awt.Point;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Random;
+
+import algorithms.Evaluator;
+
 import java.util.Collections;
 
 public class DefaultTeam {
     protected static int[][] shortestPaths;
+    protected static int[][] shortestPathsHitPoints;
     protected static ArrayList<Point> points;
+    protected static ArrayList<Point> hitPoints;
 
     public ArrayList<Point> calculAngularTSP(ArrayList<Point> points, int edgeThreshold, ArrayList<Point> hitPoints) {
         // lancer les tests unitaires 
@@ -16,33 +21,38 @@ public class DefaultTeam {
 
         // calculer tous les plus courts chemins
         this.points = points;
-        this.shortestPaths = calculShortestPaths(edgeThreshold);
+        this.shortestPaths = calculShortestPaths(points, edgeThreshold);
+        this.shortestPathsHitPoints = calculShortestPaths(hitPoints, 1000);
+        
 
         ArrayList<Point> result = new ArrayList<>();
-        ArrayList<Point> adapted_result = new ArrayList<>();
-        ArrayList<Point> rest = new ArrayList<>();
-        rest.addAll(hitPoints);
+        ArrayList<Point> adapted_result = adapt_result(result);
+        
+
+        
+        
         
 
         // Greedy
-        int start = 5;
+        //int start = 5;
+        result = geedy(hitPoints);
+        ArrayList<Point> best_result = result;
+        
 
-        result.add(rest.remove(start));
-        while (!rest.isEmpty()) {
-            Point last = result.get(result.size() - 1);
-            Point next = rest.get(0);
+        for(int i = 0; i < 100; i++){
+            result = geedy(result);
 
-            for (Point p : rest) {
-                if (real_distance(p, last) < real_distance(next, last)) {
-                    next = p;
-                }
-            }
-
-            result.add(next);
-            rest.remove(next);
+            adapted_result = adapt_result(result);
+            System.out.println("score : " + Evaluator.score(adapted_result));
+            if(Evaluator.score(adapted_result) < Evaluator.score(adapt_result(best_result))) best_result = result;
         }
 
-        ArrayList<Point> best_result = adapt_result(result);
+        System.out.println("Best score : " + Evaluator.score(adapt_result(best_result)));
+
+
+        
+
+        
         long startTime = System.currentTimeMillis();
 
         
@@ -50,10 +60,34 @@ public class DefaultTeam {
         adapted_result = adapt_result(result);
         String gains = "-" + tmp_score;
         
-        //7628.387024796853 -> juste fenetre de 7 1000x
-        gains += "\na" + (tmp_score - Evaluator.score(adapted_result));
-        tmp_score = Evaluator.score(adapted_result);
-        System.out.println(gains);
+        
+
+        for (int i = 0; i < 50000; i++){
+            result = improve_random_segment(best_result, 10);
+            adapted_result = adapt_result(result);
+            if(Evaluator.score(adapted_result) < Evaluator.score(adapt_result(best_result))) best_result = result;
+        }
+        System.out.println("Score geedy_segment : [" + ((System.currentTimeMillis() - startTime)/1000) + "] " + Evaluator.score(adapt_result(best_result)));
+
+        // localsearch
+        for (int i = 0; i < 2000; i++){
+            result = localSearch(best_result, edgeThreshold);
+            adapted_result = adapt_result(result);
+            if(Evaluator.score(adapted_result) < Evaluator.score(adapt_result(best_result))) best_result = result;
+        }
+        System.out.println("Score localSearch : [" + ((System.currentTimeMillis() - startTime)/1000) + "] " + Evaluator.score(adapt_result(best_result)));
+
+        for (int i = 0; i < 50000; i++){
+            result = improve_random_segment(best_result, 10);
+            adapted_result = adapt_result(result);
+            if(Evaluator.score(adapted_result) < Evaluator.score(adapt_result(best_result))) best_result = result;
+        }
+        System.out.println("Score geedy_segment2 : [" + ((System.currentTimeMillis() - startTime)/1000) + "] " + Evaluator.score(adapt_result(best_result)));
+
+
+
+        if(true) return adapt_result(best_result);
+
 
         for (int i = 0; i < 2000; i++){
             result = all_cores_bruteForce(result, 10);
@@ -63,7 +97,7 @@ public class DefaultTeam {
             }
             */
             //System.out.println("1");
-            adapted_result = adapt_result(result);
+            adapted_result = adapt_result(best_result);
             //if(((System.currentTimeMillis() - startTime)/1000) > 100) break;
             System.out.println("Score multi : [" + 10 + "][" + ((System.currentTimeMillis() - startTime)/1000) + "] " + Evaluator.score(adapted_result));
             if(Evaluator.score(adapted_result) < Evaluator.score(best_result)) best_result = adapted_result;
@@ -213,7 +247,7 @@ public class DefaultTeam {
     protected static ArrayList<Point> adapt_result(ArrayList<Point> list){
         ArrayList<Point> adapted_result = new ArrayList<>();
         for (int i = 0; i < list.size(); i++) {
-            adapted_result.addAll(getShortestPaths(list.get(i), list.get((i + 1) % list.size())));
+            adapted_result.addAll(getShortestPaths(shortestPaths, points, list.get(i), list.get((i + 1) % list.size())));
         }
         return adapted_result;
     }
@@ -339,14 +373,14 @@ public class DefaultTeam {
         return ccw(a, c, d) != ccw(b, c, d) && ccw(a, b, c) != ccw(a, b, d);
     }
 
-    private static ArrayList<Point> getShortestPaths(Point p1, Point p2){
+    private static ArrayList<Point> getShortestPaths(int [][] shortestPaths, ArrayList<Point> liste_points, Point p1, Point p2){
         ArrayList<Point> result = new ArrayList<>();
 
-        int goal = points.indexOf(p2);
-        int current = points.indexOf(p1);
+        int goal = liste_points.indexOf(p2);
+        int current = liste_points.indexOf(p1);
 
         while(current != goal) {
-            result.add(points.get(current));
+            result.add(liste_points.get(current));
             current = shortestPaths[current][goal];
         }
 
@@ -356,7 +390,7 @@ public class DefaultTeam {
     private static double real_distance(Point p1, Point p2) {
         int result = 0;
 
-        ArrayList<Point> chemin = getShortestPaths(p1, p2);
+        ArrayList<Point> chemin = getShortestPaths(shortestPaths, points, p1, p2);
         chemin.add(p2);
 
         for (int i = 0; i < chemin.size() - 1; i++) {
@@ -374,15 +408,15 @@ public class DefaultTeam {
      * @param edgeThreshold
      * @return une matrice à deux dimensions
      */
-    public static int[][] calculShortestPaths(int edgeThreshold) {
-        int[][] paths = new int[points.size()][points.size()];
+    public static int[][] calculShortestPaths(ArrayList<Point> liste_points, int edgeThreshold) {
+        int[][] paths = new int[liste_points.size()][liste_points.size()];
         for (int i= 0; i < paths.length; i++) {
             for (int j = 0; j < paths.length; j++) {
                 paths[i][j] = i;
             }
         }
 
-        double[][] dist = new double[points.size()][points.size()];
+        double[][] dist = new double[liste_points.size()][liste_points.size()];
 
         for (int i = 0; i < paths.length; i++) {
             for (int j = 0; j < paths.length; j++) {
@@ -390,8 +424,8 @@ public class DefaultTeam {
                     dist[i][i] = 0;
                     continue;
                 }
-                if (points.get(i).distance(points.get(j)) <= edgeThreshold) {
-                    dist[i][j] = points.get(i).distance(points.get(j));
+                if (liste_points.get(i).distance(liste_points.get(j)) <= edgeThreshold) {
+                    dist[i][j] = liste_points.get(i).distance(liste_points.get(j));
                 }
                 else {
                     dist[i][j] = Double.POSITIVE_INFINITY;
@@ -533,5 +567,52 @@ end function
         return result;
     }
 
+    protected static ArrayList<Point> geedy(ArrayList<Point> hitPoints){
+        Random random_generator = new Random();
+        int start = random_generator.nextInt(hitPoints.size() - 1);
+
+        ArrayList<Point> result = new ArrayList<>();
+        ArrayList<Point> rest = new ArrayList<>();
+        rest.addAll(hitPoints);
+
+        result.add(rest.remove(start));
+        while (!rest.isEmpty()) {
+            Point last = result.get(result.size() - 1);
+            Point next = rest.get(0);
+
+            for (Point p : rest) {
+                if (real_distance(p, last) < real_distance(next, last)) {
+                    next = p;
+                }
+            }
+
+            result.add(next);
+            rest.remove(next);
+        }
+
+        return result;
+    }
+
+    protected static ArrayList<Point> improve_random_segment(ArrayList<Point> hitPoints, int window){
+        Random random_generator = new Random();
+        int r_num = random_generator.nextInt(hitPoints.size() - 1);
+
+        ArrayList<Point> temp_list = getShortestPaths(
+            shortestPathsHitPoints, 
+            hitPoints, 
+            hitPoints.get(r_num % hitPoints.size()), 
+            hitPoints.get((r_num + window) % hitPoints.size())
+        );
+        ArrayList<Point> result = new ArrayList<>(hitPoints);
+
+        System.out.println("temp_list : " + temp_list.size());
+        System.out.println("window : " + window);
+
+        for (int i = r_num; i < r_num + window; i++) {
+            result.set(i % hitPoints.size(), temp_list.remove(0));
+        }
+
+        return result;
+    }
     
 }
