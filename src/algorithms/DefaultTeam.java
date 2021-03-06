@@ -10,7 +10,7 @@ public class DefaultTeam {
     private static final int MAX_GREEDY_RANDOMNESS = 65; // en %
     // Pas de variable statique pour rendre possible l'utilisation sur plusieurs CPUs
     protected static final String MODE = "CREATE_SOLUTION";
-    protected static final Integer MAIN_TIMEOUT = 20000000;
+    protected static final Integer MAIN_TIMEOUT = 20_000_000; // en millisecondes
     protected static final Integer IMPROVE_TIMEOUT = 300;
     protected Integer NB_GRAPHS_TO_IMPROVE = 5;
     StorageUtils storage;
@@ -20,9 +20,9 @@ public class DefaultTeam {
         long startTime = System.currentTimeMillis();
         DefaultTeam dt = new DefaultTeam();
         int edgeThreshold = 55; // c'est ce que j'ai vu en faisant un print
-        while(true){
+
+        while (System.currentTimeMillis() - startTime <= MAIN_TIMEOUT) {
             dt.calculAngularTSP(new ArrayList<>(), edgeThreshold, new ArrayList<>());
-            if(((System.currentTimeMillis() - startTime)/1000) > MAIN_TIMEOUT) break;
         }
     }
 
