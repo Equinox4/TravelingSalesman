@@ -14,7 +14,7 @@ public class DefaultTeam {
     public static final int TOP_TO_KEEP = 10;
     private static final int MAX_GREEDY_RANDOMNESS = 65; // en %
     // Pas de variable statique pour rendre possible l'utilisation sur plusieurs CPUs
-    protected static final Integer IMPROVE_TIMEOUT = 300;
+    protected static final Integer IMPROVE_TIMEOUT = 300_000; // en millisecondes
     protected Integer NB_GRAPHS_TO_IMPROVE = 5;
     StorageUtils storage;
     int edgeThreshold = -1;
@@ -106,16 +106,17 @@ public class DefaultTeam {
         ArrayList<Point> adapted_result = null;
         ArrayList<Point> best_result = result;
 
-        while(true){
-            if(random_generator.nextBoolean()){
+        while (System.currentTimeMillis() - startTime <= IMPROVE_TIMEOUT) {
+            if (random_generator.nextBoolean()) {
                 result = GraphUtils.localSearch(result, edgeThreshold);
-            } else {
+            }
+            else {
                 result = bruteForce_window(result, 8);
             }
+
             adapted_result = GraphUtils.adapt_result(shortestPaths, points, result);
             System.out.println("Score : " + Evaluator.score(adapted_result));
-            if(Evaluator.score(adapted_result) < Evaluator.score(GraphUtils.adapt_result(shortestPaths, points, best_result))) best_result = adapted_result;
-            if(((System.currentTimeMillis() - startTime)/1000) > IMPROVE_TIMEOUT) break;
+            if (Evaluator.score(adapted_result) < Evaluator.score(GraphUtils.adapt_result(shortestPaths, points, best_result))) best_result = adapted_result;
         }
 
         return best_result;
