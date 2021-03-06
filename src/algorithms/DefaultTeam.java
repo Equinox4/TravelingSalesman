@@ -10,21 +10,11 @@ public class DefaultTeam {
     private static final int MAX_GREEDY_RANDOMNESS = 65; // en %
     // Pas de variable statique pour rendre possible l'utilisation sur plusieurs CPUs
     protected static final String MODE = "CREATE_SOLUTION";
-    protected static final Integer MAIN_TIMEOUT = 20_000_000; // en millisecondes
     protected static final Integer IMPROVE_TIMEOUT = 300;
     protected Integer NB_GRAPHS_TO_IMPROVE = 5;
     StorageUtils storage;
     int edgeThreshold = -1;
-
-    public static void main(String [] args){
-        long startTime = System.currentTimeMillis();
-        DefaultTeam dt = new DefaultTeam();
-        int edgeThreshold = 55; // c'est ce que j'ai vu en faisant un print
-
-        while (System.currentTimeMillis() - startTime <= MAIN_TIMEOUT) {
-            dt.calculAngularTSP(new ArrayList<>(), edgeThreshold, new ArrayList<>());
-        }
-    }
+    private Random random_generator = new Random();
 
     public ArrayList<Point> calculAngularTSP(ArrayList<Point> points, int edgeThreshold, ArrayList<Point> hitPoints) {
         if(storage == null) this.storage = new StorageUtils();
@@ -33,7 +23,6 @@ public class DefaultTeam {
         System.out.println("edgeThreshold : " + edgeThreshold);
 
         ArrayList<Point> result = new ArrayList<>();
-
 
         switch (MODE) {
             case "INIT" :
@@ -47,10 +36,11 @@ public class DefaultTeam {
             case "CREATE_SOLUTION":
                 // reception graphe
                 Graph graph = storage.getOneGraphWithNoSolution();
-                if(graph == null){
+                if (graph == null) {
                     System.out.println("Aucun graphe sans solution n'a été trouvé, création d'une nouvelle solution pour un graphe existant");
                     graph = storage.getOneRandomGraphWithSolution();
-                    if(graph == null || graph.points.isEmpty() || graph.hitPoints.isEmpty()){
+
+                    if (graph == null || graph.points.isEmpty() || graph.hitPoints.isEmpty()) {
                         System.out.println("Aucun (graphe + hitpoints) disponibles, veuillez vous connecter à internet");
                         System.exit(-1);
                     }
@@ -58,16 +48,17 @@ public class DefaultTeam {
 
                 // traitement graphe
                 int [][] shortestPaths = GraphUtils.calculShortestPaths(graph.points, edgeThreshold);
-                ArrayList<Point> best_result = GraphUtils.adapt_result(shortestPaths, graph.points, graph.hitPoints); // pas une bonne solution parce que ça pourrait empecher la sauvegarde de la recherche si les hitpoints sont en fait le résultat d'un calcul précédent (peut arriver si on est en offline)
+                // pas une bonne solution parce que ça pourrait empecher la sauvegarde de la recherche si les hitpoints sont en fait le résultat d'un calcul précédent (peut arriver si on est en offline)
+                ArrayList<Point> best_result = GraphUtils.adapt_result(shortestPaths, graph.points, graph.hitPoints);
 
-                for (int i = 0; i < 250; i++){
+                for (int i = 0; i < 250; i++) {
                     result = start_solution(graph.points, graph.hitPoints);
 
                     System.out.println("Score [it:" + i + "][id:" + graph.id + "] : " + Evaluator.score(result) + " (best:" + Evaluator.score(best_result) + ")");
-                    if(Evaluator.score(result) < Evaluator.score(best_result)) best_result = result;
+                    if (Evaluator.score(result) < Evaluator.score(best_result)) best_result = result;
                 }
-                System.out.println("MEILLEUR SCORE : " + Evaluator.score(best_result));
 
+                System.out.println("MEILLEUR SCORE : " + Evaluator.score(best_result));
 
                 // sauvegarde résultat
                 try {
@@ -96,7 +87,6 @@ public class DefaultTeam {
                 System.out.println("ERREUR : MODE INCONNU");
                 System.exit(-1);
         }
-
 
         return result;
     }
@@ -177,7 +167,6 @@ public class DefaultTeam {
         return result;
     }
 
-
     protected static ArrayList<Point> bruteForce_window(ArrayList<Point> current_list, int window) {
         if (window >= current_list.size()) return current_list;
 
@@ -208,6 +197,4 @@ public class DefaultTeam {
 
         return liste;
     }
-
-
 }
