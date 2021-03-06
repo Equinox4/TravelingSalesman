@@ -16,7 +16,7 @@ import java.util.regex.Pattern;
 public class StorageUtils {
     private static final String SOLUTION_FILE_REGEX = "solution_([0-9]+?)_([0-9]+?).points";
     private static final String GRAPH_FILE_REGEX = "graph_([0-9]+?).points";
-    private static final int FAKE_ID = 435;
+    private static final int FAKE_ID = -1;//435;
     private static String SERVEUR = "https://voycom.desfichesdescartes.fr/index.php";
     private static String GRAPH_FOLDER = "tests/graphs/";
     private static String SOLUTIONS_FOLDER = "tests/solutions/";
@@ -50,6 +50,10 @@ public class StorageUtils {
     public boolean saveSolution(int graph_id, ArrayList<Point> best_result) throws Exception {
         int score = (int) Evaluator.score(best_result);
 
+        // On sauvegarde en local avant pour etre sur de rien perdre si le reseau bug
+        saveToFile(SOLUTIONS_FOLDER + "solution_" + graph_id + "_" + score, best_result);
+
+        // sauvegarde en ligne
         HashMap<String, String> parameters = new HashMap<>();
         parameters.put("new_solution", "");
         parameters.put("id_graph", "" + graph_id);
@@ -59,9 +63,6 @@ public class StorageUtils {
 
         if(response == "ALREADY_PRESENT") new Exception("This exact solution is already present in the DB");
         else if(!isNumeric(response)) new Exception("Incorrect response from the server : " + response);
-        //int graph_id = Integer.parseInt(response); // juste pour la clareté
-
-        saveToFile(SOLUTIONS_FOLDER + "solution_" + graph_id + "_" + score, best_result);
 
         return true;
     }
@@ -74,10 +75,32 @@ public class StorageUtils {
         parameters.put("best_of_hash", md5);
         String response = get(SERVEUR, parameters);
 
-        System.out.println("Reponse du serveur : " + response);
 
         return servPointsParser(response);
     }
+
+    public Graph getGraphToImprove(int topToKeep){
+        HashMap<String, String> parameters = new HashMap<>();
+        parameters.put("get_graph_to_improve", "");
+        parameters.put("top_to_keep", "" + topToKeep);
+        String response = get(SERVEUR, parameters);
+
+        //System.out.println(response);
+
+        String[] parts = response.split("/");
+        int id = Integer.parseInt(parts[0]);
+        String points_str = parts[1];
+        String solution_str = parts[2];
+
+        // Lecture de tous les points du graphe
+        ArrayList<Point> points = servPointsParser(points_str);
+
+        // Lecture de tous les points de la solution au graphe
+        ArrayList<Point> solution = servPointsParser(solution_str);
+
+        return new Graph(id, points, solution);
+    }
+
 
     public Graph getOneGraphWithNoSolution(){
         Graph result = null;
@@ -117,7 +140,7 @@ public class StorageUtils {
         return result;
     }
 
-    public Graph getOneGraphWithSolution(){
+    public Graph getOneRandomGraphWithSolution(){
         Graph result = null;
         try {
             // Si la connexion à la BDD est possible
@@ -185,7 +208,7 @@ public class StorageUtils {
         return listOfFilesIds;
     }
 
-    // Ajouter support offline
+    // Support partiel de l'offline
     public Graph getGraphFromId(int id) {
         if(FAKE_ID != -1) id = FAKE_ID;
         Graph resultat = null;
@@ -433,6 +456,8 @@ public class StorageUtils {
                 BufferedReader input = new BufferedReader(new InputStreamReader(new FileInputStream(filename+".points")));
                 try {
                     input.close();
+                    System.out.println("Une solution avec le meme score est deja presente dans les fichiers pour ce graphe");
+                    return;
                 } catch (IOException e) {
                     System.err.println("I/O exception: unable to close "+filename+".points");
                 }
@@ -495,6 +520,7 @@ public class StorageUtils {
         }
         return null;
     }
+
 
 
 }

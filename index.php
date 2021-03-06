@@ -107,8 +107,6 @@ if (isset($_POST['new_graph'])
     $stmt = $bdd->prepare('SELECT s.ordered_hit_points as points FROM graph g, solutions s WHERE g.hash = ? AND g.id = s.id_graph ORDER BY s.score ASC LIMIT 1');
     $stmt->bindParam(1, $_GET['best_of_hash']);
 
-
-
     if($stmt->execute()){
         $result = $stmt->fetch(PDO::FETCH_ASSOC);
         $points = str_replace("\n", "-", $result["points"]);
@@ -124,6 +122,61 @@ if (isset($_POST['new_graph'])
     foreach  ($bdd->query($sql) as $result) {
         $response .= "ID=" . $result["id"] . " ";
     }
+} else if (isset($_GET['get_graph_to_improve'])
+    && isset($_GET['top_to_keep'])) {
+    $response = "";
+
+    $sql = "
+        SELECT 
+               graphe.id, 
+               graphe.points, 
+               sol.ordered_hit_points
+        FROM 
+             solutions sol, 
+             graph graphe
+        INNER JOIN (
+            SELECT 
+                   count(s.id) as cnt, 
+                   avg(s.score) as av, 
+                   g.id as gid 
+            FROM 
+                 graph g, 
+                 solutions s 
+            WHERE 
+                  g.id = s.id_graph 
+            GROUP BY 
+                     g.id
+        ) t2
+        WHERE 
+              graphe.id = t2.gid
+        AND (
+            t2.cnt < " . $_GET['top_to_keep'] . " 
+            OR t2.av > 7000 
+            OR " . $_GET['top_to_keep'] . " <= (
+                SELECT 
+                       count(s.id) as mini 
+                FROM 
+                     graph g, 
+                     solutions s 
+                WHERE 
+                      g.id = s.id_graph 
+                GROUP BY 
+                         g.id 
+                order by mini asc limit 1
+            )
+        )
+        AND sol.id_graph = graphe.id
+        ORDER BY RAND() LIMIT 1
+    ";
+    $stmt = $bdd->prepare($sql);
+    $stmt->execute();
+    $result = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    $id = str_replace("\n", "-", $result["id"]);
+    $points = str_replace("\n", "-", $result["points"]);
+    $hit_points = str_replace("\n", "-", $result["ordered_hit_points"]);
+
+    $response = $id . "/" . $points . "/" . $hit_points;
 } else if (isset($_GET['all_graphs_id'])) {
     $response = "";
 

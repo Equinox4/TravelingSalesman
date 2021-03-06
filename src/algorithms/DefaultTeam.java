@@ -1,10 +1,7 @@
 package algorithms;
 
-import javafx.util.Pair;
-
 import java.awt.Point;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.Random;
 import java.util.Collections;
 
@@ -12,15 +9,28 @@ public class DefaultTeam {
     public static final int TOP_TO_KEEP = 10;
     private static final int MAX_GREEDY_RANDOMNESS = 60; // en %
     // Pas de variable statique pour rendre possible l'utilisation sur plusieurs CPUs
-    protected String MODE = "GATHER_SOLUTIONS";
-    protected Integer IMPROVE_TIMEOUT = 20000000;
+    protected static final String MODE = "CREATE_SOLUTION";
+    protected static final Integer MAIN_TIMEOUT = 20000000;
+    protected static final Integer IMPROVE_TIMEOUT = 300;
     protected Integer NB_GRAPHS_TO_IMPROVE = 5;
     StorageUtils storage;
     int edgeThreshold = -1;
 
+    public static void main(String [] args){
+        long startTime = System.currentTimeMillis();
+        DefaultTeam dt = new DefaultTeam();
+        int edgeThreshold = 55; // c'est ce que j'ai vu en faisant un print
+        while(true){
+            dt.calculAngularTSP(new ArrayList<>(), edgeThreshold, new ArrayList<>());
+            if(((System.currentTimeMillis() - startTime)/1000) > MAIN_TIMEOUT) break;
+        }
+    }
+
     public ArrayList<Point> calculAngularTSP(ArrayList<Point> points, int edgeThreshold, ArrayList<Point> hitPoints) {
         if(storage == null) this.storage = new StorageUtils();
         if(this.edgeThreshold == -1) this.edgeThreshold = edgeThreshold;
+
+        System.out.println("edgeThreshold : " + edgeThreshold);
 
         ArrayList<Point> result = new ArrayList<>();
 
@@ -35,45 +45,49 @@ public class DefaultTeam {
                 }
                 break;
             case "CREATE_SOLUTION":
+                // reception graphe
                 Graph graph = storage.getOneGraphWithNoSolution();
-
-                //System.out.println(points);
-
                 if(graph == null){
                     System.out.println("Aucun graphe sans solution n'a été trouvé, création d'une nouvelle solution pour un graphe existant");
-                    graph = storage.getOneGraphWithSolution();
+                    graph = storage.getOneRandomGraphWithSolution();
                     if(graph == null || graph.points.isEmpty() || graph.hitPoints.isEmpty()){
                         System.out.println("Aucun (graphe + hitpoints) disponibles, veuillez vous connecter à internet");
                         System.exit(-1);
                     }
                 }
 
-                //ArrayList<Point> result = new ArrayList<>();
-                int [][] shortestPaths = GraphUtils.calculShortestPaths(points, edgeThreshold);
-                ArrayList<Point> best_result = GraphUtils.adapt_result(shortestPaths, points, hitPoints); // pas une bonne solution parce que ça pourrait empecher la sauvegarde de la recherche si les hitpoints sont en fait le résultat d'un calcul précédent (peut arriver si on est en offline)
+                // traitement graphe
+                int [][] shortestPaths = GraphUtils.calculShortestPaths(graph.points, edgeThreshold);
+                ArrayList<Point> best_result = GraphUtils.adapt_result(shortestPaths, graph.points, graph.hitPoints); // pas une bonne solution parce que ça pourrait empecher la sauvegarde de la recherche si les hitpoints sont en fait le résultat d'un calcul précédent (peut arriver si on est en offline)
 
-
-                for (int i = 0; i < 2; i++){
+                for (int i = 0; i < 200; i++){
                     result = start_solution(graph.points, graph.hitPoints);
 
-                    System.out.println("Score [" + i + "] : " + Evaluator.score(result));
+                    System.out.println("Score [it:" + i + "][id:" + graph.id + "] : " + Evaluator.score(result) + " (best:" + Evaluator.score(best_result) + ")");
                     if(Evaluator.score(result) < Evaluator.score(best_result)) best_result = result;
                 }
-
                 System.out.println("MEILLEUR SCORE : " + Evaluator.score(best_result));
 
+
+                // sauvegarde résultat
                 try {
                     storage.saveSolution(graph.id, best_result);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
 
-                if(true) return best_result;
+                if(true) return hitPoints;
 
                 break;
             case "IMPROVE_SOLUTION":
-                // prendre le graphe ayant le moins de solutions s'il y en a un avec moins de TOP_TO_KEEP solution sinon prendre au hasard
-                // prendre une des TOP_TO_KEEP meilleures solutions et travailler dessus
+                Graph graphe = storage.getGraphToImprove(TOP_TO_KEEP);
+                result = improve_solution(graphe.points, graphe.hitPoints);
+                try {
+                    storage.saveSolution(graphe.id, result);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                if(true) return hitPoints;
                 break;
             case "GATHER_SOLUTIONS": // besoin d'internet
                 result = storage.getBestSolution(points, hitPoints);
@@ -87,6 +101,28 @@ public class DefaultTeam {
         return result;
     }
 
+    private ArrayList<Point> improve_solution(ArrayList<Point> points, ArrayList<Point> result) {
+        long startTime = System.currentTimeMillis();
+        Random random_generator = new Random();
+        int [][] shortestPaths = GraphUtils.calculShortestPaths(points, edgeThreshold);
+        ArrayList<Point> adapted_result = null;
+        ArrayList<Point> best_result = result;
+
+        while(true){
+            if(random_generator.nextBoolean()){
+                result = GraphUtils.localSearch(result, edgeThreshold);
+            } else {
+                result = bruteForce_window(result, 8);
+            }
+            adapted_result = GraphUtils.adapt_result(shortestPaths, points, result);
+            System.out.println("Score : " + Evaluator.score(adapted_result));
+            if(Evaluator.score(adapted_result) < Evaluator.score(GraphUtils.adapt_result(shortestPaths, points, best_result))) best_result = adapted_result;
+            if(((System.currentTimeMillis() - startTime)/1000) > IMPROVE_TIMEOUT) break;
+        }
+
+        return best_result;
+    }
+
     private ArrayList<Point> start_solution(ArrayList<Point> points, ArrayList<Point> hitPoints) {
         Random random_generator = new Random();
         int randomness = random_generator.nextInt(MAX_GREEDY_RANDOMNESS);
@@ -96,7 +132,7 @@ public class DefaultTeam {
         ArrayList<Point> adapted_result = new ArrayList<>();
         ArrayList<Point> best_result = hitPoints; // pas une bonne solution parce que ça pourrait empecher la sauvegarde de la recherche si les hitpoints sont en fait le résultat d'un calcul précédent (peut arriver si on est en offline)
 
-        for (int i = 0; i < 300; i++){
+        for (int i = 0; i < 333; i++){
             if(random_generator.nextBoolean()){
                 result = GraphUtils.localSearch(result, edgeThreshold);
             } else {
@@ -104,7 +140,7 @@ public class DefaultTeam {
             }
 
             adapted_result = GraphUtils.adapt_result(shortestPaths, points, result);
-            System.out.println("Score : " + Evaluator.score(adapted_result));
+            //System.out.println("Score : " + Evaluator.score(adapted_result));
             if(Evaluator.score(adapted_result) < Evaluator.score(GraphUtils.adapt_result(shortestPaths, points, best_result))) best_result = adapted_result;
         }
 
