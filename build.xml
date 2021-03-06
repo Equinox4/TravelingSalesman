@@ -5,6 +5,8 @@
 
     <property name="src"   value="src"/>
     <property name="build" value="javabeans"/>
+    <property name="tests" value="tests"/>
+    <property name="solutions" value="${tests}/solutions"/>
     <property name="jar"   value="${build}/jars"/>
 
     <presetdef name="myjavac">
@@ -14,6 +16,7 @@
     <target name="init">
         <tstamp/>
         <mkdir dir="${build}"/>
+        <mkdir dir="${solutions}"/>
     </target>
 
     <target name="compile" depends="init" description="compile the sources">
@@ -63,5 +66,6 @@
         </delete>
         <echo>================ Removing build directory ================</echo>
         <delete dir="${build}"/>
+        <delete dir="${tests}"/>
     </target>
 </project>
