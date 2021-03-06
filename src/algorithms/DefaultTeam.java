@@ -14,14 +14,13 @@ public class DefaultTeam {
     public static final int TOP_TO_KEEP = 10;
     private static final int MAX_GREEDY_RANDOMNESS = 65; // en %
     // Pas de variable statique pour rendre possible l'utilisation sur plusieurs CPUs
-    protected static final Integer IMPROVE_TIMEOUT = 300_000; // en millisecondes
     protected Integer NB_GRAPHS_TO_IMPROVE = 5;
-    StorageUtils storage;
-    int edgeThreshold = -1;
+    private static final Integer IMPROVE_TIMEOUT = 300_000; // en millisecondes
+    private int edgeThreshold = -1;
+    private StorageUtils storage = new StorageUtils();
     private Random random_generator = new Random();
 
     public ArrayList<Point> calculAngularTSP(ArrayList<Point> points, int edgeThreshold, ArrayList<Point> hitPoints) {
-        if(storage == null) this.storage = new StorageUtils();
         if(this.edgeThreshold == -1) this.edgeThreshold = edgeThreshold;
 
         System.out.println("edgeThreshold : " + edgeThreshold);
@@ -57,7 +56,7 @@ public class DefaultTeam {
                 // pas une bonne solution parce que ça pourrait empecher la sauvegarde de la recherche si les hitpoints sont en fait le résultat d'un calcul précédent (peut arriver si on est en offline)
                 ArrayList<Point> best_result = GraphUtils.adapt_result(shortestPaths, graph.points, graph.hitPoints);
 
-                for (int i = 0; i < 250; i++) {
+                for (int i = 0; i < 100; i++) {
                     result = start_solution(graph.points, graph.hitPoints);
 
                     System.out.printf("Score [it:%d][id:%d] : %d (best:%d)%n", i, graph.id, (int)Evaluator.score(result), (int)Evaluator.score(best_result));
