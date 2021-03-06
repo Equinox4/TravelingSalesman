@@ -1,6 +1,5 @@
 package algorithms;
 
-import java.awt.*;
 import java.util.ArrayList;
 
 public class GraphUtils {
@@ -52,7 +51,7 @@ public class GraphUtils {
         return paths;
     }
 
-    public static ArrayList<Point> getShortestPaths(int [][] shortestPaths, ArrayList<Point> liste_points, Point p1, Point p2){
+    public static ArrayList<Point> getShortestPaths(int [][] shortestPaths, ArrayList<Point> liste_points, Point p1, Point p2) {
         ArrayList<Point> result = new ArrayList<>();
 
         int goal = liste_points.indexOf(p2);
@@ -78,12 +77,6 @@ public class GraphUtils {
 
         return result;
     }
-
-
-
-
-
-
 
     // local search
     public static ArrayList<Point> localSearch(ArrayList<Point> current, int edgeThreshold) {
@@ -173,15 +166,10 @@ public class GraphUtils {
     public static boolean intersect(Point a, Point b, Point c, Point d) {
         return ccw(a, c, d) != ccw(b, c, d) && ccw(a, b, c) != ccw(a, b, d);
     }
+
     public static boolean ccw(Point a, Point b, Point c) {
         return (c.y - a.y) * (b.x - a.x) > (b.y - a.y) * (c.x - a.x);
     }
-
-
-
-
-
-
 
     public static ArrayList<Point> adapt_result(int [][] shortestPaths, ArrayList<Point> points, ArrayList<Point> list){
         ArrayList<Point> adapted_result = new ArrayList<>();

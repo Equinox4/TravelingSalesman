@@ -6,10 +6,14 @@ import java.util.Random;
 import java.util.Collections;
 
 public class DefaultTeam {
+    private enum Mode {
+        CREATE_SOLUTION, INIT, IMPROVE_SOLUTION, GATHER_SOLUTIONS
+    };
+    private static final Mode DEFAULT_MODE = Mode.CREATE_SOLUTION;
+
     public static final int TOP_TO_KEEP = 10;
     private static final int MAX_GREEDY_RANDOMNESS = 65; // en %
     // Pas de variable statique pour rendre possible l'utilisation sur plusieurs CPUs
-    protected static final String MODE = "CREATE_SOLUTION";
     protected static final Integer IMPROVE_TIMEOUT = 300;
     protected Integer NB_GRAPHS_TO_IMPROVE = 5;
     StorageUtils storage;
@@ -24,16 +28,18 @@ public class DefaultTeam {
 
         ArrayList<Point> result = new ArrayList<>();
 
-        switch (MODE) {
-            case "INIT" :
+        switch (DEFAULT_MODE) {
+            case INIT :
                 try {
                     storage.saveGraph(points, hitPoints);
                 } catch (Exception e) {
                     e.printStackTrace();
                     System.exit(-1);
                 }
+
                 break;
-            case "CREATE_SOLUTION":
+
+            case CREATE_SOLUTION:
                 // reception graphe
                 Graph graph = storage.getOneGraphWithNoSolution();
                 if (graph == null) {
@@ -54,7 +60,8 @@ public class DefaultTeam {
                 for (int i = 0; i < 250; i++) {
                     result = start_solution(graph.points, graph.hitPoints);
 
-                    System.out.println("Score [it:" + i + "][id:" + graph.id + "] : " + Evaluator.score(result) + " (best:" + Evaluator.score(best_result) + ")");
+                    System.out.printf("Score [it:%d][id:%d] : %d (best:%d)%n", i, graph.id, (int)Evaluator.score(result), (int)Evaluator.score(best_result));
+
                     if (Evaluator.score(result) < Evaluator.score(best_result)) best_result = result;
                 }
 
@@ -67,22 +74,24 @@ public class DefaultTeam {
                     e.printStackTrace();
                 }
 
-                if(true) return hitPoints;
+                return hitPoints;
 
-                break;
-            case "IMPROVE_SOLUTION":
+            case IMPROVE_SOLUTION:
                 Graph graphe = storage.getGraphToImprove(TOP_TO_KEEP);
                 result = improve_solution(graphe.points, graphe.hitPoints);
+
                 try {
                     storage.saveSolution(graphe.id, result);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
-                if(true) return hitPoints;
-                break;
-            case "GATHER_SOLUTIONS": // besoin d'internet
+
+                return hitPoints;
+
+            case GATHER_SOLUTIONS: // besoin d'internet
                 result = storage.getBestSolution(points, hitPoints);
                 break;
+
             default:
                 System.out.println("ERREUR : MODE INCONNU");
                 System.exit(-1);
@@ -93,7 +102,6 @@ public class DefaultTeam {
 
     private ArrayList<Point> improve_solution(ArrayList<Point> points, ArrayList<Point> result) {
         long startTime = System.currentTimeMillis();
-        Random random_generator = new Random();
         int [][] shortestPaths = GraphUtils.calculShortestPaths(points, edgeThreshold);
         ArrayList<Point> adapted_result = null;
         ArrayList<Point> best_result = result;
@@ -114,7 +122,6 @@ public class DefaultTeam {
     }
 
     private ArrayList<Point> start_solution(ArrayList<Point> points, ArrayList<Point> hitPoints) {
-        Random random_generator = new Random();
         int randomness = random_generator.nextInt(MAX_GREEDY_RANDOMNESS);
         int [][] shortestPaths = GraphUtils.calculShortestPaths(points, edgeThreshold);
 

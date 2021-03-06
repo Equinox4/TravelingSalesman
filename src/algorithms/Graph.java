@@ -1,6 +1,5 @@
 package algorithms;
 
-import java.awt.*;
 import java.util.ArrayList;
 
 public class Graph {
