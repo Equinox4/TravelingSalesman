@@ -118,24 +118,28 @@ public class StorageUtils {
             while (matcher.find()) {
                 allGraphWithoutSolution.add(Integer.parseInt(matcher.group(1)));
             }
+
+            if(allGraphWithoutSolution.size() == 1) return getGraphFromId(allGraphWithoutSolution.get(0));
+            if(allGraphWithoutSolution.size() < 1) return null;
+
             Random random_generator = new Random();
             int r_index = random_generator.nextInt(allGraphWithoutSolution.size() - 1);
 
             result = getGraphFromId(allGraphWithoutSolution.get(r_index));
         } catch(Exception e) {
-        } finally {
-            // Si la connexion à la BDD n'est pas possible
+        } 
+        // Si la connexion à la BDD n'est pas possible
 
-            if(result == null){
-                ArrayList<Integer> candidateIds = getLocalIdListOfGraphWithoutSolution();
-                if(candidateIds.isEmpty()) return null;
+        if(result == null){
+            ArrayList<Integer> candidateIds = getLocalIdListOfGraphWithoutSolution();
+            if(candidateIds.isEmpty()) return null;
 
-                Random random_generator = new Random();
-                int r_index = random_generator.nextInt(candidateIds.size() - 1);
+            Random random_generator = new Random();
+            int r_index = random_generator.nextInt(candidateIds.size() - 1);
 
-                result = getGraphFromId(candidateIds.get(r_index));
-            }
+            result = getGraphFromId(candidateIds.get(r_index));
         }
+        
 
         return result;
     }
@@ -161,19 +165,19 @@ public class StorageUtils {
 
             result = getGraphFromId(allGraphWithoutSolution.get(r_index));
         } catch(Exception e) {
-        } finally {
-            // Si la connexion à la BDD n'est pas possible
+        } 
+        // Si la connexion à la BDD n'est pas possible
 
-            if(result == null){
-                ArrayList<Integer> listOfGraphFilesIds = getListOfFileIdWithNameRegexAndFolderPath(GRAPH_FOLDER, GRAPH_FILE_REGEX);
-                if(listOfGraphFilesIds.isEmpty()) return null;
+        if(result == null){
+            ArrayList<Integer> listOfGraphFilesIds = getListOfFileIdWithNameRegexAndFolderPath(GRAPH_FOLDER, GRAPH_FILE_REGEX);
+            if(listOfGraphFilesIds.isEmpty()) return null;
 
-                Random random_generator = new Random();
-                int r_index = random_generator.nextInt(listOfGraphFilesIds.size() - 1);
+            Random random_generator = new Random();
+            int r_index = random_generator.nextInt(listOfGraphFilesIds.size() - 1);
 
-                result = getGraphFromId(listOfGraphFilesIds.get(r_index));
-            }
+            result = getGraphFromId(listOfGraphFilesIds.get(r_index));
         }
+        
 
         return result;
     }
@@ -219,11 +223,11 @@ public class StorageUtils {
             parameters.put("id", "" + id);
             String response = get(SERVEUR, parameters);
 
-            //System.out.println(response);
 
             String[] parts = response.split("/");
             String points_str = parts[0];
             String hitPoints_str = parts[1];
+
 
             // Lecture de tous les points du graphe
             ArrayList<Point> points = servPointsParser(points_str);
@@ -231,24 +235,24 @@ public class StorageUtils {
             // Lecture de tous les hitPoints du graphe
             ArrayList<Point> hitPoints = servPointsParser(hitPoints_str);
 
-
             resultat = new Graph(id, points, hitPoints);
         } catch(Exception e) {
-        } finally {
-            // Ici on part du principe qu'il y a des solutions en local car sinon on serait plutot en mode CREATE_SOLUTION
-            if(resultat == null || resultat.points.isEmpty() || resultat.hitPoints.isEmpty()){
-                ArrayList<Point> points = readFromFile(GRAPH_FOLDER + "graph_" + id + ".points");
+        } 
+        // Ici on part du principe qu'il y a des solutions en local car sinon on serait plutot en mode CREATE_SOLUTION
+        if(resultat == null || resultat.points.isEmpty() || resultat.hitPoints.isEmpty()){
+            ArrayList<Point> points = readFromFile(GRAPH_FOLDER + "graph_" + id + ".points");
 
-                List<Integer> listOfSolutionsWithScore = getTopNOfGraphSolutionLocal(id, DefaultTeam.TOP_TO_KEEP);
-                Random random_generator = new Random();
-                int r_index = random_generator.nextInt(listOfSolutionsWithScore.size() - 1);
-                int score = listOfSolutionsWithScore.get(r_index);
+            List<Integer> listOfSolutionsWithScore = getTopNOfGraphSolutionLocal(id, DefaultTeam.TOP_TO_KEEP);
+            if(listOfSolutionsWithScore.size() == 0) return null; // il faut que l'user se connecte
+            Random random_generator = new Random();
+            int r_index = random_generator.nextInt(listOfSolutionsWithScore.size() - 1);
+            int score = listOfSolutionsWithScore.get(r_index);
 
-                ArrayList<Point> solution = readFromFile(SOLUTIONS_FOLDER + "solution_" + id + "_" + score + ".points");
+            ArrayList<Point> solution = readFromFile(SOLUTIONS_FOLDER + "solution_" + id + "_" + score + ".points");
 
-                resultat = new Graph(id, points, solution);
-            }
+            resultat = new Graph(id, points, solution);
         }
+        
 
 
         return resultat;
@@ -344,6 +348,7 @@ public class StorageUtils {
             conn.setRequestMethod("POST");
             conn.setDoInput(true);
             conn.setDoOutput(true);
+            
 
 
             OutputStream os = conn.getOutputStream();
@@ -355,6 +360,9 @@ public class StorageUtils {
             writer.close();
             os.close();
             int responseCode=conn.getResponseCode();
+
+            System.out.println("\nSending 'POST' request to URL : " + requestURL);
+            System.out.println("Response Code : " + responseCode);
 
             if (responseCode == HttpsURLConnection.HTTP_OK) {
                 String line;

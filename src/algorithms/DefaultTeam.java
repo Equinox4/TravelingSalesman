@@ -60,7 +60,7 @@ public class DefaultTeam {
                 int [][] shortestPaths = GraphUtils.calculShortestPaths(graph.points, edgeThreshold);
                 ArrayList<Point> best_result = GraphUtils.adapt_result(shortestPaths, graph.points, graph.hitPoints); // pas une bonne solution parce que ça pourrait empecher la sauvegarde de la recherche si les hitpoints sont en fait le résultat d'un calcul précédent (peut arriver si on est en offline)
 
-                for (int i = 0; i < 200; i++){
+                for (int i = 0; i < 250; i++){
                     result = start_solution(graph.points, graph.hitPoints);
 
                     System.out.println("Score [it:" + i + "][id:" + graph.id + "] : " + Evaluator.score(result) + " (best:" + Evaluator.score(best_result) + ")");
