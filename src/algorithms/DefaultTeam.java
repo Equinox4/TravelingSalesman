@@ -7,7 +7,7 @@ import java.util.Collections;
 
 public class DefaultTeam {
     public static final int TOP_TO_KEEP = 10;
-    private static final int MAX_GREEDY_RANDOMNESS = 60; // en %
+    private static final int MAX_GREEDY_RANDOMNESS = 65; // en %
     // Pas de variable statique pour rendre possible l'utilisation sur plusieurs CPUs
     protected static final String MODE = "CREATE_SOLUTION";
     protected static final Integer MAIN_TIMEOUT = 20000000;
@@ -132,7 +132,7 @@ public class DefaultTeam {
         ArrayList<Point> adapted_result = new ArrayList<>();
         ArrayList<Point> best_result = hitPoints; // pas une bonne solution parce que ça pourrait empecher la sauvegarde de la recherche si les hitpoints sont en fait le résultat d'un calcul précédent (peut arriver si on est en offline)
 
-        for (int i = 0; i < 333; i++){
+        for (int i = 0; i < 500; i++){
             if(random_generator.nextBoolean()){
                 result = GraphUtils.localSearch(result, edgeThreshold);
             } else {

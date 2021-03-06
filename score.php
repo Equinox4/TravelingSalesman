@@ -8,9 +8,9 @@ try{
 
 $sql = "
 SELECT avg(t2.score) as av
-FROM solutions sol
+FROM graph
 INNER JOIN (select s.id_graph as gid ,min(s.score) as score from solutions s group by s.id_graph) t2
-on (sol.score = t2.score)
+on (graph.id = t2.gid)
 ";
 
 $stmt = $bdd->prepare($sql);
