@@ -12,7 +12,7 @@ public class DefaultTeam {
         IMPROVE_SOLUTION,
         GATHER_SOLUTIONS
     };
-    private static final Mode DEFAULT_MODE = Mode.CREATE_SOLUTION;
+    private static final Mode DEFAULT_MODE = Mode.IMPROVE_SOLUTION;
 
     public static final int TOP_TO_KEEP = 10;
     private static final int MAX_GREEDY_RANDOMNESS = 65; // en %
@@ -67,7 +67,7 @@ public class DefaultTeam {
                 // pas une bonne solution parce que ça pourrait empecher la sauvegarde de la recherche si les hitpoints sont en fait le résultat d'un calcul précédent (peut arriver si on est en offline)
                 ArrayList<Point> best_result = GraphUtils.adapt_result(shortestPaths, graph.points, graph.hitPoints);
 
-                for (int i = 0; i < 5; i++) {
+                for (int i = 0; i < 80; i++) {
                     result = start_solution(graph.points, graph.hitPoints);
 
                     System.out.printf("Score [it:%d][id:%d] : %d (best:%d)%n", i, graph.id, (int) Evaluator.score(GraphUtils.adapt_result(shortestPaths, graph.points, result)), (int) Evaluator.score(GraphUtils.adapt_result(shortestPaths, graph.points, best_result)));
@@ -94,20 +94,8 @@ public class DefaultTeam {
             case IMPROVE_SOLUTION:
                 Graph graphe = storage.getGraphToImprove(TOP_TO_KEEP);
                 result = graphe.solution;
-
-
                 Graph tmp_graphe = storage.getGraphFromId(graphe.id);
-                /*
-                if(
-                        Evaluator.isValid(
-                                graphe.points,
-                                result,
-                                tmp_graphe.hitPoints,
-                                edgeThreshold
-                        )
-                ){
-                    System.out.println("Solution non améliorable [graphId:"+graphe.id+"] (pre-correction bug) travail sur une autre solution ...");
-                } else*/
+
                 int [][] shortest_paths = GraphUtils.calculShortestPaths(
                         graphe.points,
                         edgeThreshold
@@ -203,12 +191,7 @@ public class DefaultTeam {
                 storage.deleteSolution(graph.id, graph.solution);
                 result = start_solution(tmp.points, tmp.hitPoints);
             }
-            /*
-            System.out.println("is OK : " + Evaluator.isValid(points, result, tmp.hitPoints, edgeThreshold));
-            System.out.println("hitPoints size : " + tmp.hitPoints.size());
-            System.out.println("result size : " + result.size());
-            System.out.println("-----------------");
-            */
+
         } else if(result.size() < 50) {
             System.out.println("Solution corrompue (contient moins de 50 pts), creation d'une nouvelle solution ...");
             storage.deleteSolution(graph.id, graph.solution);
@@ -246,7 +229,7 @@ public class DefaultTeam {
         ArrayList<Point> adapted_result = new ArrayList<>();
         ArrayList<Point> best_result = hitPoints; // pas une bonne solution parce que ça pourrait empecher la sauvegarde de la recherche si les hitpoints sont en fait le résultat d'un calcul précédent (peut arriver si on est en offline)
 
-        for (int i = 0; i < 500; i++){
+        for (int i = 0; i < 600; i++){
             if(random_generator.nextBoolean()){
                 result = GraphUtils.localSearch(result, edgeThreshold);
             } else {
