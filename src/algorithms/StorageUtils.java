@@ -67,6 +67,21 @@ public class StorageUtils {
         return true;
     }
 
+    public boolean deleteSolution(int graph_id, ArrayList<Point> best_result){
+        int score = (int) Evaluator.score(best_result);
+
+        HashMap<String, String> parameters = new HashMap<>();
+        parameters.put("delete_solution", "");
+        parameters.put("id_graph", "" + graph_id);
+        parameters.put("score", "" + score);
+        String response = post(SERVEUR, parameters);
+
+        if(response == "SOLUTION_DOESNT_EXISTS") new Exception("This solution is not present in the DB");
+        else if(!isNumeric(response)) new Exception("Incorrect response from the server : " + response);
+
+        return true;
+    }
+
     public ArrayList<Point> getBestSolution(ArrayList<Point> points, ArrayList<Point> hitPoints) {
         String md5 = md5(pointsToString(points) + pointsToString(hitPoints));
 
@@ -238,7 +253,7 @@ public class StorageUtils {
             resultat = new Graph(id, points, hitPoints);
         } catch(Exception e) {
         } 
-        // Ici on part du principe qu'il y a des solutions en local car sinon on serait plutot en mode CREATE_SOLUTION
+        // Ici on part du principe que s'il n'est pas connecté il l'a déjà ete au moins une fois au moment de run des tests
         if(resultat == null || resultat.points.isEmpty() || resultat.hitPoints.isEmpty()){
             ArrayList<Point> points = readFromFile(GRAPH_FOLDER + "graph_" + id + ".points");
 
@@ -256,6 +271,20 @@ public class StorageUtils {
 
 
         return resultat;
+    }
+
+    public int getIdFromGraph(ArrayList<Point> points, ArrayList<Point> hitPoints) {
+        String md5 = md5(pointsToString(points) + pointsToString(hitPoints));
+
+        HashMap<String, String> parameters = new HashMap<>();
+        parameters.put("get_graph_id_from_md5", "");
+        parameters.put("md5", "" + md5);
+        String response = get(SERVEUR, parameters);
+
+        if(response == "NOT_FOUND") new Exception("Ths graph haven't been found in the DB");
+        else if(!isNumeric(response)) new Exception("Incorrect response from the server : " + response);
+
+        return Integer.parseInt(response);
     }
 
     public ArrayList<Point> servPointsParser(String points_str){

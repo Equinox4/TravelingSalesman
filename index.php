@@ -67,6 +67,25 @@ if (isset($_POST['new_graph'])
     } else {
         $response = "GRAPH_DOESNT_EXISTS";
     }
+
+
+
+} else if (isset($_POST['delete_solution'])
+    && isset($_POST['id_graph'])
+    && isset($_POST['score'])) {
+    // input  : solution
+
+    $stmt = $bdd->prepare('UPDATE solutions SET id_graph = (0 - ?) WHERE id_graph = ? AND score = score = ?');
+    $stmt->bindParam(1, $_POST['id_graph'], PDO::PARAM_STR);
+    $stmt->bindParam(2, $_POST['id_graph'], PDO::PARAM_STR);
+    $stmt->bindParam(3, $_POST['score'], PDO::PARAM_STR);
+    $res = $stmt->execute();
+
+    if($res){
+        $response = "200" // succes (il faut un int)
+    } else {
+        $response = "SOLUTION_DOESNT_EXISTS";
+    }
 } else if (isset($_GET['solutions'])
     && isset($_GET['best_of_each'])) {
     $response = "";
@@ -194,6 +213,22 @@ if (isset($_POST['new_graph'])
     $hit_points = str_replace("\n", "-", $result["hit_points"]);
 
     $response = $points . "/" . $hit_points;
+} else if (isset($_GET['get_graph_id_from_md5'])
+    && isset($_GET['md5'])) {
+    // input  : graph md5
+    // output : graph id
+
+    // pour qu'on ne puisse pas envoyer plusieurs fois le meme graphe
+    $hash = md5($_POST['points'] . $_POST['hit_points']);
+
+    $stmt = $bdd->prepare('SELECT id FROM graph WHERE hash = ?');
+    $stmt->bindParam(1, $_POST['md5']);
+
+    if($stmt->execute()){
+        $response = $stmt->fetchAll(PDO::FETCH_ASSOC)["id"];
+    } else {
+        $response = "NOT_FOUND";
+    }
 }
 
 
