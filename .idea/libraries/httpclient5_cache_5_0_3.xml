@@ -1,9 +1,0 @@
-<component name="libraryTable">
-  <library name="httpclient5-cache-5.0.3">
-    <CLASSES>
-      <root url="jar://$PROJECT_DIR$/jars/httpclient5-cache-5.0.3.jar!/" />
-    </CLASSES>
-    <JAVADOC />
-    <SOURCES />
-  </library>
-</component>
