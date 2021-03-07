@@ -12,7 +12,7 @@ public class DefaultTeam {
         IMPROVE_SOLUTION,
         GATHER_SOLUTIONS
     };
-    private static final Mode DEFAULT_MODE = Mode.IMPROVE_SOLUTION;
+    private static final Mode DEFAULT_MODE = Mode.CREATE_SOLUTION;
 
     public static final int TOP_TO_KEEP = 10;
     private static final int MAX_GREEDY_RANDOMNESS = 65; // en %
@@ -44,6 +44,8 @@ public class DefaultTeam {
             case CREATE_SOLUTION:
                 // reception graphe
                 Graph graph = storage.getOneGraphWithNoSolution();
+                //Graph graph = storage.getGraphFromId(356);
+                ArrayList<Point> graph_hitPoints = graph.hitPoints;
                 if (graph == null) {
                     System.out.println("Aucun graphe sans solution n'a été trouvé, création d'une nouvelle solution pour un graphe existant");
                     graph = storage.getOneRandomGraphWithSolution();
@@ -52,6 +54,9 @@ public class DefaultTeam {
                         System.out.println("Aucun (graphe + hitpoints) disponibles, veuillez vous connecter à internet");
                         System.exit(-1);
                     }
+
+                    // on reccupere les hitPoints du graphe original pour pouvoir calculer la validité de la soluce
+                    graph_hitPoints = storage.getGraphFromId(graph.id).hitPoints;
                 }
 
                 // traitement graphe
@@ -64,7 +69,11 @@ public class DefaultTeam {
 
                     System.out.printf("Score [it:%d][id:%d] : %d (best:%d)%n", i, graph.id, (int)Evaluator.score(result), (int)Evaluator.score(best_result));
 
-                    if (Evaluator.score(result) < Evaluator.score(best_result)) best_result = result;
+                    // j'ai ajouté une verif de validité à cause du graphe 356 qui cree des solution bizarres
+                    if (Evaluator.isValid(graph.points, GraphUtils.adapt_result(GraphUtils.calculShortestPaths(graph.points, edgeThreshold), graph.points, result), graph_hitPoints, edgeThreshold)
+                            && Evaluator.score(result) < Evaluator.score(best_result)) {
+                        best_result = result;
+                    }
                 }
 
                 System.out.println("MEILLEUR SCORE : " + Evaluator.score(best_result));
@@ -93,14 +102,19 @@ public class DefaultTeam {
             case GATHER_SOLUTIONS: // besoin d'internet
                 result = storage.getBestSolution(points, hitPoints);
                 if(result.size() == 50){
-                    ArrayList<Point> tmp_result = GraphUtils.adapt_result(GraphUtils.calculShortestPaths(points, edgeThreshold), points, result);
-                    if(!Evaluator.isValid(points, result, hitPoints, edgeThreshold)){
-                        storage.deleteSolution(storage.getIdFromGraph(points, hitPoints), result);
-                        tmp_result = storage.getBestSolution(points, hitPoints);
-                    }
-                    result = tmp_result;
+                    result = GraphUtils.adapt_result(GraphUtils.calculShortestPaths(points, edgeThreshold), points, result);
                 } else if(result.size() < 50) {
-                    storage.deleteSolution(storage.getIdFromGraph(points, hitPoints), result);
+                    int graph_id = storage.getIdFromGraph(points, hitPoints);
+                    System.out.println("Solution corrompue [graphId:"+graph_id+"] (contient moins de 50 pts), recuperation d'une nouvelle solution ...");
+                    storage.deleteSolution(graph_id, result);
+                    result = calculAngularTSP(points, edgeThreshold, hitPoints);
+                }
+
+                if(!Evaluator.isValid(points, result, hitPoints, edgeThreshold)){
+                    int graph_id = storage.getIdFromGraph(points, hitPoints);
+                    System.out.println("Solution corrompue [graphId:"+graph_id+"], suppression et recuperation d'une nouvelle solution ...");
+                    storage.deleteSolution(graph_id, result);
+                    result = calculAngularTSP(points, edgeThreshold, hitPoints);
                 }
                 break;
             default:
@@ -145,6 +159,7 @@ public class DefaultTeam {
             */
         } else if(result.size() < 50) {
             System.out.println("Solution corrompue (contient moins de 50 pts), creation d'une nouvelle solution ...");
+            storage.deleteSolution(graph.id, graph.solution);
             Graph tmp = storage.getGraphFromId(graph.id);
             result = start_solution(tmp.points, tmp.hitPoints);
         }
@@ -189,7 +204,7 @@ public class DefaultTeam {
         }
 
         // local search + brute fenetre 6
-        return adapted_result;
+        return best_result;
     }
 
 

@@ -74,7 +74,7 @@ public class StorageUtils {
         parameters.put("delete_solution", "");
         parameters.put("id_graph", "" + graph_id);
         parameters.put("score", "" + score);
-        String response = post(SERVEUR, parameters);
+        String response = get(SERVEUR, parameters);
 
         if(response == "SOLUTION_DOESNT_EXISTS") new Exception("This solution is not present in the DB");
         else if(!isNumeric(response)) new Exception("Incorrect response from the server : " + response);

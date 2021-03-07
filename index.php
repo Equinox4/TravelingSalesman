@@ -67,22 +67,18 @@ if (isset($_POST['new_graph'])
     } else {
         $response = "GRAPH_DOESNT_EXISTS";
     }
-
-
-
-} else if (isset($_POST['delete_solution'])
-    && isset($_POST['id_graph'])
-    && isset($_POST['score'])) {
+} else if (isset($_GET['delete_solution'])
+    && isset($_GET['id_graph'])
+    && isset($_GET['score'])) {
     // input  : solution
 
-    $stmt = $bdd->prepare('UPDATE solutions SET id_graph = (0 - ?) WHERE id_graph = ? AND score = score = ?');
-    $stmt->bindParam(1, $_POST['id_graph'], PDO::PARAM_STR);
-    $stmt->bindParam(2, $_POST['id_graph'], PDO::PARAM_STR);
-    $stmt->bindParam(3, $_POST['score'], PDO::PARAM_STR);
+    // On met juste l'ID en negatif comme ça tout est reccupérable en cas d'erreur de suppression
+    $stmt = $bdd->prepare('UPDATE solutions SET id_graph = (0-'.$_GET['id_graph'].') WHERE id_graph = '.$_GET['id_graph'].' AND score = '.$_GET['score']);
+
     $res = $stmt->execute();
 
     if($res){
-        $response = "200" // succes (il faut un int)
+        $response = "200"; // succes (il faut un int)
     } else {
         $response = "SOLUTION_DOESNT_EXISTS";
     }
@@ -222,10 +218,10 @@ if (isset($_POST['new_graph'])
     $hash = md5($_POST['points'] . $_POST['hit_points']);
 
     $stmt = $bdd->prepare('SELECT id FROM graph WHERE hash = ?');
-    $stmt->bindParam(1, $_POST['md5']);
+    $stmt->bindParam(1, $_GET['md5']);
 
     if($stmt->execute()){
-        $response = $stmt->fetchAll(PDO::FETCH_ASSOC)["id"];
+        $response = $stmt->fetch(PDO::FETCH_ASSOC)["id"];
     } else {
         $response = "NOT_FOUND";
     }
