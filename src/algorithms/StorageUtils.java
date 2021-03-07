@@ -47,8 +47,8 @@ public class StorageUtils {
         return true;
     }
 
-    public boolean saveSolution(int graph_id, ArrayList<Point> best_result) throws Exception {
-        int score = (int) Evaluator.score(best_result);
+    public boolean saveSolution(int graph_id, ArrayList<Point> best_result, int score) throws Exception {
+        //int score = (int) Evaluator.score(best_result);
 
         // On sauvegarde en local avant pour etre sur de rien perdre si le reseau bug
         saveToFile(SOLUTIONS_FOLDER + "solution_" + graph_id + "_" + score, best_result);

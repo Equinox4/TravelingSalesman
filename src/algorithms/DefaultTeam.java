@@ -18,7 +18,7 @@ public class DefaultTeam {
     private static final int MAX_GREEDY_RANDOMNESS = 65; // en %
     // Pas de variable statique pour rendre possible l'utilisation sur plusieurs CPUs
     protected Integer NB_GRAPHS_TO_IMPROVE = 5;
-    private static final Integer IMPROVE_TIMEOUT = 300_000; // en millisecondes
+    private static final Integer IMPROVE_TIMEOUT = 300000; // en millisecondes
     private int edgeThreshold = -1;
     private StorageUtils storage = new StorageUtils();
     private Random random_generator = new Random();
@@ -45,9 +45,12 @@ public class DefaultTeam {
                 // reception graphe
                 Graph graph = storage.getOneGraphWithNoSolution();
                 //Graph graph = storage.getGraphFromId(356);
-                ArrayList<Point> graph_hitPoints = graph.hitPoints;
-                if (graph == null) {
-                    System.out.println("Aucun graphe sans solution n'a été trouvé, création d'une nouvelle solution pour un graphe existant");
+                ArrayList<Point> graph_hitPoints;
+
+                if (graph != null){
+                    graph_hitPoints = graph.hitPoints;
+                } else {
+                    System.out.println("Aucun graphe sans solution n'a ete trouvé, creation d'une nouvelle solution pour un graphe en ayant deja");
                     graph = storage.getOneRandomGraphWithSolution();
 
                     if (graph == null || graph.points.isEmpty() || graph.hitPoints.isEmpty()) {
@@ -64,23 +67,24 @@ public class DefaultTeam {
                 // pas une bonne solution parce que ça pourrait empecher la sauvegarde de la recherche si les hitpoints sont en fait le résultat d'un calcul précédent (peut arriver si on est en offline)
                 ArrayList<Point> best_result = GraphUtils.adapt_result(shortestPaths, graph.points, graph.hitPoints);
 
-                for (int i = 0; i < 100; i++) {
+                for (int i = 0; i < 5; i++) {
                     result = start_solution(graph.points, graph.hitPoints);
 
-                    System.out.printf("Score [it:%d][id:%d] : %d (best:%d)%n", i, graph.id, (int)Evaluator.score(result), (int)Evaluator.score(best_result));
+                    System.out.printf("Score [it:%d][id:%d] : %d (best:%d)%n", i, graph.id, (int) Evaluator.score(GraphUtils.adapt_result(shortestPaths, graph.points, result)), (int) Evaluator.score(GraphUtils.adapt_result(shortestPaths, graph.points, best_result)));
 
                     // j'ai ajouté une verif de validité à cause du graphe 356 qui cree des solution bizarres
-                    if (Evaluator.isValid(graph.points, GraphUtils.adapt_result(GraphUtils.calculShortestPaths(graph.points, edgeThreshold), graph.points, result), graph_hitPoints, edgeThreshold)
-                            && Evaluator.score(result) < Evaluator.score(best_result)) {
+                    if (result.size() == 50
+                            && Evaluator.isValid(graph.points, GraphUtils.adapt_result(shortestPaths, graph.points, result), graph_hitPoints, edgeThreshold)
+                            && Evaluator.score(GraphUtils.adapt_result(shortestPaths, graph.points, result)) < Evaluator.score(GraphUtils.adapt_result(shortestPaths, graph.points, best_result))) {
                         best_result = result;
                     }
                 }
 
-                System.out.println("MEILLEUR SCORE : " + Evaluator.score(best_result));
+                System.out.println("MEILLEUR SCORE : " + Evaluator.score(GraphUtils.adapt_result(shortestPaths, graph.points, best_result)));
 
                 // sauvegarde résultat
                 try {
-                    storage.saveSolution(graph.id, best_result);
+                    storage.saveSolution(graph.id, best_result, (int) Evaluator.score(GraphUtils.adapt_result(shortestPaths, graph.points, best_result)));
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -89,12 +93,60 @@ public class DefaultTeam {
 
             case IMPROVE_SOLUTION:
                 Graph graphe = storage.getGraphToImprove(TOP_TO_KEEP);
-                result = improve_solution(graphe);
+                result = graphe.solution;
 
-                try {
-                    storage.saveSolution(graphe.id, result);
-                } catch (Exception e) {
-                    e.printStackTrace();
+
+                Graph tmp_graphe = storage.getGraphFromId(graphe.id);
+                /*
+                if(
+                        Evaluator.isValid(
+                                graphe.points,
+                                result,
+                                tmp_graphe.hitPoints,
+                                edgeThreshold
+                        )
+                ){
+                    System.out.println("Solution non améliorable [graphId:"+graphe.id+"] (pre-correction bug) travail sur une autre solution ...");
+                } else*/
+                int [][] shortest_paths = GraphUtils.calculShortestPaths(
+                        graphe.points,
+                        edgeThreshold
+                );
+                if (
+                    !(
+                        Evaluator.isValid(
+                                graphe.points,
+                                result,
+                                tmp_graphe.hitPoints,
+                                edgeThreshold
+                        )
+                    ) && !(
+                        Evaluator.isValid(
+                                tmp_graphe.points,
+                                GraphUtils.adapt_result(
+                                        shortest_paths,
+                                        graphe.points,
+                                        result),
+                                tmp_graphe.hitPoints,
+                                edgeThreshold)
+                    )
+                ){
+                    System.out.println("Solution corrompue [graphId:"+graphe.id+"], suppression et travail sur une autre solution ...");
+                    storage.deleteSolution(graphe.id, result);
+                    //calculAngularTSP(graphe.points, edgeThreshold, tmp_graphe.hitPoints);
+                } else {
+                    result = improve_solution(graphe);
+                    try {
+                        if(result != null){
+                            System.out.println("Sauvegarde de l'amelioration [graphId:"+graphe.id+"] ...");
+                            storage.saveSolution(graphe.id, result, (int) Evaluator.score(GraphUtils.adapt_result(shortest_paths, graphe.points, result)));
+                        } else {
+                            System.out.println("l'amelioration est corrompue, elle ne sera pas enregistree");
+                        }
+
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
                 }
 
                 return hitPoints;
@@ -169,18 +221,21 @@ public class DefaultTeam {
 
         while (System.currentTimeMillis() - startTime <= IMPROVE_TIMEOUT) {
             if (random_generator.nextBoolean()) {
-                result = GraphUtils.localSearch(result, edgeThreshold);
+                result = GraphUtils.localSearch(best_result, edgeThreshold);
             }
             else {
-                result = bruteForce_window(result, 8);
+                result = bruteForce_window(best_result, 8);
             }
 
             adapted_result = GraphUtils.adapt_result(shortestPaths, points, result);
             System.out.println("Score : " + Evaluator.score(adapted_result));
-            if (Evaluator.score(adapted_result) < Evaluator.score(GraphUtils.adapt_result(shortestPaths, points, best_result))) best_result = result;
+            if (result.size() == 50 && Evaluator.score(adapted_result) < Evaluator.score(GraphUtils.adapt_result(shortestPaths, points, best_result))) best_result = result;
         }
 
-        return best_result;
+        if(best_result.size() == 50)
+            return best_result;
+        else
+            return null;
     }
 
     private ArrayList<Point> start_solution(ArrayList<Point> points, ArrayList<Point> hitPoints) {
