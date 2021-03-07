@@ -1,5 +1,4 @@
 .DS_Store
-javabeans
+javabeans/algorithms
 .vscode
-.idea
-jars
+
