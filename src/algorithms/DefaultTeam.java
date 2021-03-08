@@ -13,7 +13,7 @@ public class DefaultTeam {
         GATHER_SOLUTIONS
     };
     private static final Mode DEFAULT_MODE = Mode.CREATE_SOLUTION;
-    private static final boolean OLD_CREATE_SOLUTION = true;
+    private static final boolean OLD_CREATE_SOLUTION = false;
 
     public static final int TOP_TO_KEEP = 10;
     private static final int MAX_GREEDY_RANDOMNESS = 65; // en %
@@ -72,7 +72,7 @@ public class DefaultTeam {
                 if(OLD_CREATE_SOLUTION){
                     best_result = old_start_solution(graph.points, graph.hitPoints);
                 } else {
-                    for (int i = 0; i < 80; i++) {
+                    for (int i = 0; i < 50; i++) {
                         result = start_solution(graph.points, graph.hitPoints);
 
                         System.out.printf("Score [it:%d][id:%d] : %d (best:%d)%n", i, graph.id, (int) Evaluator.score(GraphUtils.adapt_result(shortestPaths, graph.points, result)), (int) Evaluator.score(GraphUtils.adapt_result(shortestPaths, graph.points, best_result)));
@@ -292,11 +292,11 @@ public class DefaultTeam {
         ArrayList<Point> adapted_result = new ArrayList<>();
         ArrayList<Point> best_result = hitPoints; // pas une bonne solution parce que ça pourrait empecher la sauvegarde de la recherche si les hitpoints sont en fait le résultat d'un calcul précédent (peut arriver si on est en offline)
 
-        for (int i = 0; i < 600; i++){
+        for (int i = 0; i < 700; i++){
             if(random_generator.nextBoolean()){
                 result = GraphUtils.localSearch(result, edgeThreshold);
             } else {
-                result = bruteForce_window(result, 6);
+                result = bruteForce_window(result, 7);
             }
 
             adapted_result = GraphUtils.adapt_result(shortestPaths, points, result);
