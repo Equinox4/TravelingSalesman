@@ -5,7 +5,8 @@ import java.util.HashMap;
 import java.awt.Point;
 
 public class MultiCPUProcess extends Thread {
-    private ArrayList<Point> liste;
+    private int [][] shortestPaths;
+    private Graph graph;
 
     private double score;
     private int window;
@@ -16,19 +17,21 @@ public class MultiCPUProcess extends Thread {
     }
 
     ArrayList<Point> getListe() {
-        return liste;
+        return graph.solution;
     }
 
-    MultiCPUProcess (ThreadGroup tg, String name, ArrayList<Point> liste, int window) {
+    MultiCPUProcess (ThreadGroup tg, String name, Graph graph, int window, int [][] shortestPaths) {
         super(tg,name);
-        this.liste = liste;
+        //this.liste = liste;
+        this.graph = new Graph(graph.id, graph.points, graph.solution);
         this.window = window;
         this.score = -1;
+        this.shortestPaths = shortestPaths;
     }
 
     public void run() {
-        //liste = DefaultTeam.bruteForce_window(liste, window);
-        //score = Evaluator.score(DefaultTeam.adapt_result(liste));
+        graph.newSolution(DefaultTeam.bruteForce_window(graph.solution, window));
+        score = Evaluator.score(GraphUtils.adapt_result(shortestPaths, graph.points, graph.solution));
     }
 
 

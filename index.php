@@ -119,7 +119,14 @@ if (isset($_POST['new_graph'])
     $response = "";
 
     // on recherche le meilleur pour ce graphe
-    $stmt = $bdd->prepare('SELECT s.ordered_hit_points as points FROM graph g, solutions s WHERE g.hash = ? AND g.id = s.id_graph ORDER BY s.score ASC LIMIT 1');
+    //$stmt = $bdd->prepare('SELECT s.ordered_hit_points as points FROM graph g, solutions s WHERE g.hash = ? AND g.id = s.id_graph ORDER BY s.score ASC LIMIT 1');
+    $stmt = $bdd->prepare('
+        select sol.ordered_hit_points as points
+        from solutions sol, 
+        (select g.id as id_graph, min(s.score) as score from solutions s, graph g where s.id_graph = g.id and g.hash = ? group by s.id_graph) t
+        where t.id_graph = sol.id_graph
+        and sol.score = t.score
+    ');
     $stmt->bindParam(1, $_GET['best_of_hash']);
 
     if($stmt->execute()){

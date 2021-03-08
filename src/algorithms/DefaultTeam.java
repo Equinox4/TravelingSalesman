@@ -12,7 +12,8 @@ public class DefaultTeam {
         IMPROVE_SOLUTION,
         GATHER_SOLUTIONS
     };
-    private static final Mode DEFAULT_MODE = Mode.IMPROVE_SOLUTION;
+    private static final Mode DEFAULT_MODE = Mode.CREATE_SOLUTION;
+    private static final boolean OLD_CREATE_SOLUTION = true;
 
     public static final int TOP_TO_KEEP = 10;
     private static final int MAX_GREEDY_RANDOMNESS = 65; // en %
@@ -45,6 +46,7 @@ public class DefaultTeam {
                 // reception graphe
                 Graph graph = storage.getOneGraphWithNoSolution();
                 //Graph graph = storage.getGraphFromId(356);
+                //Graph graph = storage.getGraphFromId(storage.getIdFromGraph(points, hitPoints));
                 ArrayList<Point> graph_hitPoints;
 
                 if (graph != null){
@@ -67,29 +69,36 @@ public class DefaultTeam {
                 // pas une bonne solution parce que ça pourrait empecher la sauvegarde de la recherche si les hitpoints sont en fait le résultat d'un calcul précédent (peut arriver si on est en offline)
                 ArrayList<Point> best_result = GraphUtils.adapt_result(shortestPaths, graph.points, graph.hitPoints);
 
-                for (int i = 0; i < 80; i++) {
-                    result = start_solution(graph.points, graph.hitPoints);
+                if(OLD_CREATE_SOLUTION){
+                    best_result = old_start_solution(graph.points, graph.hitPoints);
+                } else {
+                    for (int i = 0; i < 80; i++) {
+                        result = start_solution(graph.points, graph.hitPoints);
 
-                    System.out.printf("Score [it:%d][id:%d] : %d (best:%d)%n", i, graph.id, (int) Evaluator.score(GraphUtils.adapt_result(shortestPaths, graph.points, result)), (int) Evaluator.score(GraphUtils.adapt_result(shortestPaths, graph.points, best_result)));
+                        System.out.printf("Score [it:%d][id:%d] : %d (best:%d)%n", i, graph.id, (int) Evaluator.score(GraphUtils.adapt_result(shortestPaths, graph.points, result)), (int) Evaluator.score(GraphUtils.adapt_result(shortestPaths, graph.points, best_result)));
 
-                    // j'ai ajouté une verif de validité à cause du graphe 356 qui cree des solution bizarres
-                    if (result.size() == 50
-                            && Evaluator.isValid(graph.points, GraphUtils.adapt_result(shortestPaths, graph.points, result), graph_hitPoints, edgeThreshold)
-                            && Evaluator.score(GraphUtils.adapt_result(shortestPaths, graph.points, result)) < Evaluator.score(GraphUtils.adapt_result(shortestPaths, graph.points, best_result))) {
-                        best_result = result;
+                        // j'ai ajouté une verif de validité à cause du graphe 356 qui cree des solution bizarres
+                        if (result.size() == 50
+                                && Evaluator.isValid(graph.points, GraphUtils.adapt_result(shortestPaths, graph.points, result), graph_hitPoints, edgeThreshold)
+                                && Evaluator.score(GraphUtils.adapt_result(shortestPaths, graph.points, result)) < Evaluator.score(GraphUtils.adapt_result(shortestPaths, graph.points, best_result))) {
+                            best_result = result;
+                        }
                     }
                 }
+
 
                 System.out.println("MEILLEUR SCORE : " + Evaluator.score(GraphUtils.adapt_result(shortestPaths, graph.points, best_result)));
 
                 // sauvegarde résultat
                 try {
+                    System.out.println("Sauvegarde de la solution ...");
                     storage.saveSolution(graph.id, best_result, (int) Evaluator.score(GraphUtils.adapt_result(shortestPaths, graph.points, best_result)));
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
 
                 return hitPoints;
+                //return GraphUtils.adapt_result(shortestPaths, graph.points, best_result);
 
             case IMPROVE_SOLUTION:
                 Graph graphe = storage.getGraphToImprove(TOP_TO_KEEP);
@@ -163,6 +172,60 @@ public class DefaultTeam {
         }
 
         return result;
+    }
+
+    private ArrayList<Point> old_start_solution(ArrayList<Point> points, ArrayList<Point> hitPoints) {
+        long startTime = System.currentTimeMillis();
+        int [][] shortestPaths = GraphUtils.calculShortestPaths(points, edgeThreshold);
+
+
+        ArrayList<Point> result = hitPoints;
+        ArrayList<Point> adapted_result = GraphUtils.adapt_result(shortestPaths, points, result);
+        result = greedy(shortestPaths, points, result, 100);
+        ArrayList<Point> best_result = result;
+
+
+        for (int i = 0; i < 2000; i++){
+            result = all_cores_bruteForce(new Graph(0, points, result) , shortestPaths, 10);
+            adapted_result = GraphUtils.adapt_result(shortestPaths, points, result);
+            System.out.println("Score multi : [" + 10 + "][" + ((System.currentTimeMillis() - startTime)/1000) + "] " + Evaluator.score(adapted_result));
+            if(Evaluator.score(adapted_result) < Evaluator.score(GraphUtils.adapt_result(shortestPaths, points, best_result))) best_result = result;
+            if(((System.currentTimeMillis() - startTime)/1000) > 250) break;
+        }
+        for (int i = 0; i < 2000; i++){
+            result = all_cores_bruteForce(new Graph(0, points, result), shortestPaths, 9);
+            adapted_result = GraphUtils.adapt_result(shortestPaths, points, result);
+            System.out.println("Score multi : [" + 9 + "][" + ((System.currentTimeMillis() - startTime)/1000) + "] " + Evaluator.score(adapted_result));
+            if(Evaluator.score(adapted_result) < Evaluator.score(GraphUtils.adapt_result(shortestPaths, points, best_result))) best_result = result;
+            if(((System.currentTimeMillis() - startTime)/1000) > 275) break;
+        }
+
+
+        // localsearch
+        for (int i = 0; i < 2000; i++){
+            result = GraphUtils.localSearch(result, edgeThreshold);
+        }
+        adapted_result = GraphUtils.adapt_result(shortestPaths, points, result);
+        if(Evaluator.score(adapted_result) < Evaluator.score(GraphUtils.adapt_result(shortestPaths, points, best_result))) best_result = result;
+
+
+
+        for (int i = 0; i < 2000; i++){
+            result = all_cores_bruteForce(new Graph(0, points, result), shortestPaths, 10);
+            adapted_result = GraphUtils.adapt_result(shortestPaths, points, result);
+            System.out.println("Score multi post : [" + 10 + "][" + ((System.currentTimeMillis() - startTime)/1000) + "] " + Evaluator.score(adapted_result));
+            if(Evaluator.score(adapted_result) < Evaluator.score(GraphUtils.adapt_result(shortestPaths, points, best_result))) best_result = result;
+            if(((System.currentTimeMillis() - startTime)/1000) > 400) break;
+        }
+        for (int i = 0; i < 2000; i++){
+            result = all_cores_bruteForce(new Graph(0, points, result), shortestPaths, 7);
+            adapted_result = GraphUtils.adapt_result(shortestPaths, points, result);
+            System.out.println("Score multi post : [" + 7 + "][" + ((System.currentTimeMillis() - startTime)/1000) + "] " + Evaluator.score(adapted_result));
+            if(Evaluator.score(adapted_result) < Evaluator.score(GraphUtils.adapt_result(shortestPaths, points, best_result))) best_result = result;
+            if(((System.currentTimeMillis() - startTime)/1000) > 430) break;
+        }
+
+        return best_result;
     }
 
     private ArrayList<Point> improve_solution(Graph graph) {
@@ -304,4 +367,46 @@ public class DefaultTeam {
 
         return liste;
     }
+
+    private static ArrayList<Point> all_cores_bruteForce(Graph graph, int [][] shortestPaths, int window){
+        ArrayList<Point> liste = graph.solution;
+        ArrayList<Point> adapted_result = GraphUtils.adapt_result(shortestPaths, graph.points, liste);
+        double score_liste = Evaluator.score(adapted_result);
+
+        ArrayList<Point> result = liste;
+
+        ThreadGroup tg = new ThreadGroup("main");
+        int np = Runtime.getRuntime().availableProcessors();
+
+        ArrayList<MultiCPUProcess> sims = new ArrayList<MultiCPUProcess>();
+        for (int i=0;i<np;i++) sims.add(new MultiCPUProcess(tg, "proces"+i, graph, window, shortestPaths));
+
+        int i=0;
+        while (i<sims.size()){
+            if (tg.activeCount()<np){ // do we have available CPUs?
+                MultiCPUProcess sim = sims.get(i);
+                sim.start();
+                i++;
+            } else {
+                try {Thread.sleep(100);} /*wait 0.1 second before checking again*/
+                catch (InterruptedException e) {e.printStackTrace();}
+            }
+
+        }
+
+        while(tg.activeCount()>0){
+            for (i=0;i<sims.size();i++) {
+                MultiCPUProcess sim = sims.get(i);
+                double score_tmp = sim.getScore();
+                if((score_tmp != -1) && (score_tmp < score_liste)){
+                    result = sim.getListe();
+                    for(MultiCPUProcess sim_to_stop : sims){
+                        sim_to_stop.stop();
+                    }
+                }
+            }
+        }
+        return result;
+    }
+
 }

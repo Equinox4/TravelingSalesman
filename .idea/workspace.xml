@@ -3,7 +3,11 @@
   <component name="ChangeListManager">
     <list default="true" id="1ea79a3b-96a8-4035-9c80-a411bf511833" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/index.php" beforeDir="false" afterPath="$PROJECT_DIR$/index.php" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/algorithms/DefaultTeam.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/algorithms/DefaultTeam.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/algorithms/DefaultTeam_old.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/algorithms/DefaultTeam_old.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/algorithms/Graph.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/algorithms/Graph.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/algorithms/MultiCPUProcess.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/algorithms/MultiCPUProcess.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -98,7 +102,7 @@
       <workItem from="1615081094127" duration="149000" />
       <workItem from="1615081256327" duration="4824000" />
       <workItem from="1615132552751" duration="4805000" />
-      <workItem from="1615138061269" duration="11029000" />
+      <workItem from="1615138061269" duration="20302000" />
     </task>
     <task id="LOCAL-00001" summary="ajout fichiers intellij">
       <created>1615082118742</created>
@@ -121,7 +125,14 @@
       <option name="project" value="LOCAL" />
       <updated>1615149030306</updated>
     </task>
-    <option name="localTasksCounter" value="4" />
+    <task id="LOCAL-00004" summary="mini clean">
+      <created>1615149260811</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1615149260811</updated>
+    </task>
+    <option name="localTasksCounter" value="5" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -152,7 +163,8 @@
   <component name="VcsManagerConfiguration">
     <MESSAGE value="ajout fichiers intellij" />
     <MESSAGE value="correction divers bugs" />
-    <option name="LAST_COMMIT_MESSAGE" value="correction divers bugs" />
+    <MESSAGE value="mini clean" />
+    <option name="LAST_COMMIT_MESSAGE" value="mini clean" />
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
     <SUITE FILE_PATH="coverage/serieux$DefaultTeam.ic" NAME="DefaultTeam Coverage Results" MODIFIED="1614997105192" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="idea" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false">

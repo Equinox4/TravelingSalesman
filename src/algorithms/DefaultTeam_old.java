@@ -404,7 +404,7 @@ public class DefaultTeam_old {
      *  permet d'obtenir une matrice donnant pour deux points d'indice i et j l'indice k
      *  du prochain sommet dans un plus court chemin de i à j
      *
-     * @param points
+     * @param liste_points
      * @param edgeThreshold
      * @return une matrice à deux dimensions
      */
@@ -535,7 +535,7 @@ end function
         int np = Runtime.getRuntime().availableProcessors();
 
         ArrayList<MultiCPUProcess> sims = new ArrayList<MultiCPUProcess>();
-        for (int i=0;i<np;i++) sims.add(new MultiCPUProcess(tg, "proces"+i, liste, window));
+        //for (int i=0;i<np;i++) sims.add(new MultiCPUProcess(tg, "proces"+i, liste, window));
 
         int i=0;
         while (i<sims.size()){

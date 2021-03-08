@@ -15,4 +15,9 @@ public class Graph {
         this.solution = solution;
         this.hitPoints = solution; // pour que ça soit clair partout dans le code
     }
+
+    public void newSolution(ArrayList<Point> solution){
+        this.solution = solution;
+        this.hitPoints = solution;
+    }
 }
