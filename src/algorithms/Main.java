@@ -12,8 +12,13 @@ public class Main {
         int edgeThreshold = 55; // c'est ce que j'ai vu en faisant un print
 
         while (System.currentTimeMillis() - startTime <= MAIN_TIMEOUT) {
-            //dt.calculAngularTSP(new ArrayList<>(), edgeThreshold, new ArrayList<>());
-            dt.experimental_improve_solution();
+            try {
+                dt.calculAngularTSP(new ArrayList<>(), edgeThreshold, new ArrayList<>());
+            } catch (Exception e){
+                e.printStackTrace();
+            }
+
+            //dt.experimental_improve_solution();
         }
     }
 }

@@ -217,7 +217,7 @@ public class StorageUtils {
         String response = get(SERVEUR, parameters);
 
         String[] parts = response.split("/");
-        for(int i = 0; i < n; i++){
+        for(int i = 0; i < (response.chars().filter(c -> c == '/').count() + 1); i++){
             String points_str = parts[i];
             result.add(servPointsParser(points_str));
         }

@@ -10,6 +10,7 @@ public class DefaultTeam {
         INIT, // a n'utiliser qu'une fois, après avoir totalement nettoyé la BDD et avant de passer aux autres modes
         CREATE_SOLUTION,
         IMPROVE_SOLUTION,
+        EXPERIMENTAL_IMPROVE_SOLUTION,
         GATHER_SOLUTIONS
     };
     private static final Mode DEFAULT_MODE = Mode.CREATE_SOLUTION;
@@ -99,7 +100,11 @@ public class DefaultTeam {
 
                 return hitPoints;
                 //return GraphUtils.adapt_result(shortestPaths, graph.points, best_result);
+            /*
+            case EXPERIMENTAL_IMPROVE_SOLUTION:
+                ArrayList<Point> solution = experimental_improve_solution();
 
+             */
             case IMPROVE_SOLUTION:
                 if(true){
                     ArrayList<Point> res = experimental_improve_solution();
@@ -244,7 +249,7 @@ public class DefaultTeam {
         graphe.hitPoints = storage.getGraphFromId(graphe.id).hitPoints;
         int [][] shortestPaths = GraphUtils.calculShortestPaths(graphe.points, edgeThreshold);
 
-        ArrayList<ArrayList<Point>> all_solutions = storage.getTopNOfGraphSolution(graphe.id, 15);
+        ArrayList<ArrayList<Point>> all_solutions = storage.getTopNOfGraphSolution(graphe.id, 13);
         ArrayList<ArrayList<Point>> candidates = new ArrayList<>();
 
         for(int i = 0; i < all_solutions.size(); i++){
@@ -280,7 +285,7 @@ public class DefaultTeam {
             }
         }
 
-        ArrayList<Point> result = candidates.get(0);
+        ArrayList<Point> result = graphe.hitPoints;
 
         for(ArrayList<Point> candidate : candidates){
             int score_old = (int) Evaluator.score(GraphUtils.adapt_result(shortestPaths, graphe.points, result));
@@ -293,6 +298,15 @@ public class DefaultTeam {
         boolean isValid = Evaluator.isValid(graphe.points, GraphUtils.adapt_result(shortestPaths, graphe.points, result), graphe.hitPoints, edgeThreshold);
 
         System.out.println("Solution finale : isValid : " + isValid + " - score : " + score);
+
+
+        try {
+            System.out.println("Sauvegarde ...");
+            storage.saveSolution(graphe.id, result, score);
+            System.out.println("methode terminee");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
         return result;
     }

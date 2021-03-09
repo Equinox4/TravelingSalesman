@@ -12,7 +12,7 @@ try{
 
 $response = "ERROR";
 
-if (isset($_POST['new_graph'])
+if (isset($_POST['new_graph_disabled'])
     && isset($_POST['points'])
     && isset($_POST['hit_points'])) {
     // input  : graph

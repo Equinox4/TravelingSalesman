@@ -210,7 +210,7 @@ public class GraphUtils {
                             tmp_a.set(k % a.solution.size(), b.solution.get((k-i+j) % b.solution.size()));
                             if(k % a.solution.size() > 50){
                                 System.out.println("erreur : " + k + " - " + a.solution.size() + " - " + (k % a.solution.size()));
-                                System.exit(-1);
+                                //System.exit(-1);
                             }
                         }
 
@@ -219,7 +219,7 @@ public class GraphUtils {
                             tmp_b.set(k % b.solution.size(), a.solution.get((k-j+i) % a.solution.size()));
                             if(k % b.solution.size() > 50){
                                 System.out.println("erreur : " + k + " - " + b.solution.size() + " - " + (k % b.solution.size()));
-                                System.exit(-1);
+                                //System.exit(-1);
                             }
                         }
                         double new_score_a = Evaluator.score(GraphUtils.adapt_result(shortestPaths, a.points, tmp_a));
