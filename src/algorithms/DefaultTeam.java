@@ -12,7 +12,7 @@ public class DefaultTeam {
         IMPROVE_SOLUTION,
         GATHER_SOLUTIONS
     };
-    private static final Mode DEFAULT_MODE = Mode.IMPROVE_SOLUTION;
+    private static final Mode DEFAULT_MODE = Mode.CREATE_SOLUTION;
     private static final boolean OLD_CREATE_SOLUTION = false;
 
     public static final int TOP_TO_KEEP = 10;
@@ -133,7 +133,8 @@ public class DefaultTeam {
                     )
                 ){
                     System.out.println("Solution corrompue [graphId:"+graphe.id+"], suppression et travail sur une autre solution ...");
-                    storage.deleteSolution(graphe.id, result);
+                    int score = (int) Evaluator.score(best_result);
+                    storage.deleteSolution(graphe.id, score);
                     //calculAngularTSP(graphe.points, edgeThreshold, tmp_graphe.hitPoints);
                 } else {
                     result = improve_solution(graphe);
@@ -154,19 +155,23 @@ public class DefaultTeam {
 
             case GATHER_SOLUTIONS: // besoin d'internet
                 result = storage.getBestSolution(points, hitPoints);
+                int score = (int) Evaluator.score(GraphUtils.adapt_result(GraphUtils.calculShortestPaths(
+                        points,
+                        edgeThreshold
+                ), points, result));
                 if(result.size() == 50){
                     result = GraphUtils.adapt_result(GraphUtils.calculShortestPaths(points, edgeThreshold), points, result);
                 } else if(result.size() < 50) {
                     int graph_id = storage.getIdFromGraph(points, hitPoints);
                     System.out.println("Solution corrompue [graphId:"+graph_id+"] (contient moins de 50 pts), recuperation d'une nouvelle solution ...");
-                    storage.deleteSolution(graph_id, result);
+                    storage.deleteSolution(graph_id, score);
                     result = calculAngularTSP(points, edgeThreshold, hitPoints);
                 }
 
                 if(!Evaluator.isValid(points, result, hitPoints, edgeThreshold)){
                     int graph_id = storage.getIdFromGraph(points, hitPoints);
                     System.out.println("Solution corrompue [graphId:"+graph_id+"], suppression et recuperation d'une nouvelle solution ...");
-                    storage.deleteSolution(graph_id, result);
+                    storage.deleteSolution(graph_id, score);
                     result = calculAngularTSP(points, edgeThreshold, hitPoints);
                 }
                 break;
@@ -466,18 +471,21 @@ public class DefaultTeam {
                     System.out.println("Solution corrigée avec succes !");
                 } else {
                     System.out.println("Echec de correction, creation d'une nouvelle solution ...");
-                    storage.deleteSolution(graph.id, graph.solution);
+                    int score = (int) Evaluator.score(graph.solution);
+                    storage.deleteSolution(graph.id, score);
                     result = start_solution(tmp.points, tmp.hitPoints);
                 }
             } else {
                 System.out.println("Solution corrompue, creation d'une nouvelle solution ...");
-                storage.deleteSolution(graph.id, graph.solution);
+                int score = (int) Evaluator.score(graph.solution);
+                storage.deleteSolution(graph.id, score);
                 result = start_solution(tmp.points, tmp.hitPoints);
             }
 
         } else if(result.size() < 50) {
             System.out.println("Solution corrompue (contient moins de 50 pts), creation d'une nouvelle solution ...");
-            storage.deleteSolution(graph.id, graph.solution);
+            int score = (int) Evaluator.score(graph.solution);
+            storage.deleteSolution(graph.id, score);
             Graph tmp = storage.getGraphFromId(graph.id);
             result = start_solution(tmp.points, tmp.hitPoints);
         }

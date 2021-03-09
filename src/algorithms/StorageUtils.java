@@ -67,8 +67,8 @@ public class StorageUtils {
         return true;
     }
 
-    public boolean deleteSolution(int graph_id, ArrayList<Point> best_result){
-        int score = (int) Evaluator.score(best_result);
+    public boolean deleteSolution(int graph_id, int score){
+        //int score = (int) Evaluator.score(best_result);
 
         HashMap<String, String> parameters = new HashMap<>();
         parameters.put("delete_solution", "");
