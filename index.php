@@ -103,14 +103,20 @@ if (isset($_POST['new_graph'])
     $response = "";
 
     // on recherche les n meilleurs pour ce graphe
-    $stmt = $bdd->prepare('SELECT ordered_hit_points, score FROM solutions WHERE id_graph = ? ORDER BY ASC score LIMIT ?');
-    $stmt->bindParam(1, $_POST['id_graph']);
-    $stmt->bindParam(2, $_POST['n']);
+    $stmt = $bdd->prepare('
+        SELECT ordered_hit_points 
+        FROM solutions 
+        WHERE id_graph = '.$_GET['id_graph'].' 
+        ORDER BY score ASC LIMIT '.$_GET['n'].'
+    ');
 
     if($stmt->execute()){
-        foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) as $result) {
-            $response .= "\nSCORE=" . $result["score"] . "\n" . $result["ordered_hit_points"];
+        $tab = [];
+        foreach($stmt->fetchAll(PDO::FETCH_ASSOC) as $res){
+            array_push($tab, str_replace("\n", "-", $res["ordered_hit_points"]));
         }
+        $tmp = implode("/" , $tab);
+        $response = str_replace("\n", "-", $tmp);
     } else {
         $response = "GRAPH_SOLUTION_DOESNT_EXISTS";
     }

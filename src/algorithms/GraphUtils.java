@@ -1,6 +1,8 @@
 package algorithms;
 
 import java.awt.Point;
+import java.lang.reflect.Array;
+import java.net.InetSocketAddress;
 import java.util.ArrayList;
 
 public class GraphUtils {
@@ -179,4 +181,85 @@ public class GraphUtils {
         }
         return adapted_result;
     }
+
+    public static ArrayList<Point> smartMerge(Graph a, Graph b, int edgeThreshold, int [][] shortestPaths){
+        double score_a = Evaluator.score(GraphUtils.adapt_result(shortestPaths, a.points, a.solution));
+        double score_b = Evaluator.score(GraphUtils.adapt_result(shortestPaths, b.points, b.solution));
+
+        //System.out.println("a : " + score_a + " size : " + a.solution.size());
+        //System.out.println("b : " + score_b + " size : " + b.solution.size());
+
+        ArrayList<Point> result = new ArrayList<>(score_a < score_b ? a.solution : b.solution);
+
+        for(int frame_size = 4; frame_size < (result.size()/2); frame_size++){
+            for(int i = 0; i < a.solution.size(); i++){
+                for(int j = 0; j < b.solution.size(); j++){
+                    /*
+                    try {
+                        Thread.sleep(3);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                    System.out.println("a[size:"+a.solution.size()+"][score:"+score_a+"] : " + subList(a.solution, i, i + frame_size));
+                    System.out.println("b[size:"+b.solution.size()+"][score:"+score_b+"] : " + subList(b.solution, j, j + frame_size));
+                    */
+                    if(subList(a.solution, i, i + frame_size).containsAll(subList(b.solution, j, j + frame_size))){
+                        //System.out.print("+");
+                        ArrayList<Point> tmp_a = new ArrayList<>(a.solution);
+                        for(int k = i; k < i+frame_size; k++){
+                            tmp_a.set(k % a.solution.size(), b.solution.get((k-i+j) % b.solution.size()));
+                            if(k % a.solution.size() > 50){
+                                System.out.println("erreur : " + k + " - " + a.solution.size() + " - " + (k % a.solution.size()));
+                                System.exit(-1);
+                            }
+                        }
+
+                        ArrayList<Point> tmp_b = new ArrayList<>(b.solution);
+                        for(int k = j; k < j+frame_size; k++){
+                            tmp_b.set(k % b.solution.size(), a.solution.get((k-j+i) % a.solution.size()));
+                            if(k % b.solution.size() > 50){
+                                System.out.println("erreur : " + k + " - " + b.solution.size() + " - " + (k % b.solution.size()));
+                                System.exit(-1);
+                            }
+                        }
+                        double new_score_a = Evaluator.score(GraphUtils.adapt_result(shortestPaths, a.points, tmp_a));
+                        double new_score_b = Evaluator.score(GraphUtils.adapt_result(shortestPaths, b.points, tmp_b));
+
+                        if(new_score_a < score_a){
+                            a.solution = tmp_a;
+                            score_a = new_score_a;
+                        }
+                        if(new_score_b < score_b){
+                            b.solution = tmp_b;
+                            score_b = new_score_b;
+                        }
+
+                    }
+                }
+            }
+        }
+
+        //System.out.println("a_post : " + score_a + " size : " + a.solution.size());
+        //System.out.println("b_post : " + score_b + " size : " + b.solution.size());
+
+        score_a = Evaluator.score(GraphUtils.adapt_result(shortestPaths, a.points, a.solution));
+        score_b = Evaluator.score(GraphUtils.adapt_result(shortestPaths, b.points, b.solution));
+
+        return score_a < score_b ? a.solution : b.solution;
+    }
+
+    private static ArrayList<Point> subList(ArrayList<Point> liste, int depart, int fin){
+        if(fin != liste.size()) fin = fin % liste.size();
+        ArrayList<Point> result = new ArrayList<Point>();
+
+        if(depart <= fin) {
+            result.addAll(liste.subList(depart, fin));
+        } else {
+            result.addAll(liste.subList(depart, liste.size()));
+            result.addAll(liste.subList(0, fin));
+        }
+        return result;
+    }
+
+
 }

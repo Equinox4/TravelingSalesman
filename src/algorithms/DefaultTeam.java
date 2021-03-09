@@ -12,7 +12,7 @@ public class DefaultTeam {
         IMPROVE_SOLUTION,
         GATHER_SOLUTIONS
     };
-    private static final Mode DEFAULT_MODE = Mode.CREATE_SOLUTION;
+    private static final Mode DEFAULT_MODE = Mode.IMPROVE_SOLUTION;
     private static final boolean OLD_CREATE_SOLUTION = false;
 
     public static final int TOP_TO_KEEP = 10;
@@ -101,6 +101,10 @@ public class DefaultTeam {
                 //return GraphUtils.adapt_result(shortestPaths, graph.points, best_result);
 
             case IMPROVE_SOLUTION:
+                if(true){
+                    ArrayList<Point> res = experimental_improve_solution();
+                    return hitPoints;
+                }
                 Graph graphe = storage.getGraphToImprove(TOP_TO_KEEP);
                 result = graphe.solution;
                 Graph tmp_graphe = storage.getGraphFromId(graphe.id);
@@ -228,39 +232,73 @@ public class DefaultTeam {
         return best_result;
     }
 
-    private ArrayList<Point> improve_solution(Graph graph) {
-        long startTime = System.currentTimeMillis();
-        ArrayList<Point> points = graph.points;
-        ArrayList<Point> result = graph.solution;
-        int [][] shortestPaths = GraphUtils.calculShortestPaths(points, edgeThreshold);
-        if(result.size() > 50){
-            System.out.println("Reccupération d'une solution erronée, tentative de correction ...");
-            Graph tmp = storage.getGraphFromId(graph.id);
-            if(Evaluator.isValid(points, result, tmp.hitPoints, edgeThreshold)){
-                ArrayList<Point> tmp_list = new ArrayList<>();
-                for(Point pt : result){
-                    if(tmp.hitPoints.contains(pt)) tmp_list.add(pt);
+    public ArrayList<Point> experimental_improve_solution(){
+
+        // on recupere toutes les solutions d'un graphe
+        Graph graphe = storage.getGraphToImprove(TOP_TO_KEEP);
+        graphe.hitPoints = storage.getGraphFromId(graphe.id).hitPoints;
+        int [][] shortestPaths = GraphUtils.calculShortestPaths(graphe.points, edgeThreshold);
+
+        ArrayList<ArrayList<Point>> all_solutions = storage.getTopNOfGraphSolution(graphe.id, 15);
+        ArrayList<ArrayList<Point>> candidates = new ArrayList<>();
+
+        for(int i = 0; i < all_solutions.size(); i++){
+            int score = (int) Evaluator.score(GraphUtils.adapt_result(shortestPaths, graphe.points, all_solutions.get(i)));
+
+            ArrayList<ArrayList<Point>> sol_list = new ArrayList<>();
+
+            if(i < (all_solutions.size() - 1)){
+                for(int j = i+1; j < all_solutions.size(); j++){
+                    Graph a = new Graph(graphe.id, graphe.points, all_solutions.get(i));
+                    Graph b = new Graph(graphe.id, graphe.points, all_solutions.get(j));
+
+                    a.newSolution(getWellFormatedSolution(a, edgeThreshold));
+                    b.newSolution(getWellFormatedSolution(b, edgeThreshold));
+
+                    ArrayList<Point> sol = GraphUtils.smartMerge(a, b, edgeThreshold, shortestPaths);
+                    candidates.add(sol);
+
+                    int score_sol = (int) Evaluator.score(GraphUtils.adapt_result(shortestPaths, graphe.points, sol));
+                    boolean isValid = Evaluator.isValid(graphe.points, GraphUtils.adapt_result(shortestPaths, graphe.points, sol), graphe.hitPoints, edgeThreshold);
+                    //System.out.println("Score : " + score_sol + " size : " + sol.size() + " isValid : " + isValid);
+                    if(isValid) sol_list.add(sol);
                 }
-                if(Evaluator.isValid(points, GraphUtils.adapt_result(shortestPaths, points, result), tmp.hitPoints, edgeThreshold)){
-                    result = tmp_list;
-                    System.out.println("Solution corrigée avec succes !");
-                } else {
-                    System.out.println("Echec de correction, creation d'une nouvelle solution ...");
-                    storage.deleteSolution(graph.id, graph.solution);
-                    result = start_solution(tmp.points, tmp.hitPoints);
-                }
-            } else {
-                System.out.println("Solution corrompue, creation d'une nouvelle solution ...");
-                storage.deleteSolution(graph.id, graph.solution);
-                result = start_solution(tmp.points, tmp.hitPoints);
             }
 
-        } else if(result.size() < 50) {
-            System.out.println("Solution corrompue (contient moins de 50 pts), creation d'une nouvelle solution ...");
-            storage.deleteSolution(graph.id, graph.solution);
-            Graph tmp = storage.getGraphFromId(graph.id);
-            result = start_solution(tmp.points, tmp.hitPoints);
+            boolean isValid = Evaluator.isValid(graphe.points, GraphUtils.adapt_result(shortestPaths, graphe.points, all_solutions.get(i)), graphe.hitPoints, edgeThreshold);
+            System.out.println("Score initial : " + score + " size : " + all_solutions.get(i).size() + " isValid : " + isValid);
+
+            for(ArrayList<Point> sol : sol_list){
+                int score_sol = (int) Evaluator.score(GraphUtils.adapt_result(shortestPaths, graphe.points, sol));
+                boolean isValid_sol = Evaluator.isValid(graphe.points, GraphUtils.adapt_result(shortestPaths, graphe.points, sol), graphe.hitPoints, edgeThreshold);
+                System.out.println("Score new : " + score_sol + " size : " + sol.size() + " isValid : " + isValid_sol);
+            }
         }
+
+        ArrayList<Point> result = candidates.get(0);
+
+        for(ArrayList<Point> candidate : candidates){
+            int score_old = (int) Evaluator.score(GraphUtils.adapt_result(shortestPaths, graphe.points, result));
+            int score_new = (int) Evaluator.score(GraphUtils.adapt_result(shortestPaths, graphe.points, candidate));
+            boolean isValid = Evaluator.isValid(graphe.points, GraphUtils.adapt_result(shortestPaths, graphe.points, candidate), graphe.hitPoints, edgeThreshold);
+            if(score_new < score_old && isValid) result = candidate;
+        }
+
+        int score = (int) Evaluator.score(GraphUtils.adapt_result(shortestPaths, graphe.points, result));
+        boolean isValid = Evaluator.isValid(graphe.points, GraphUtils.adapt_result(shortestPaths, graphe.points, result), graphe.hitPoints, edgeThreshold);
+
+        System.out.println("Solution finale : isValid : " + isValid + " - score : " + score);
+
+        return result;
+    }
+
+    private ArrayList<Point> improve_solution(Graph graph) {
+        long startTime = System.currentTimeMillis();ArrayList<Point> points = graph.points;
+        ArrayList<Point> result = graph.solution;
+        int [][] shortestPaths = GraphUtils.calculShortestPaths(points, edgeThreshold);
+
+        result = getWellFormatedSolution(graph, edgeThreshold);
+
         //int [][] shortestPaths = GraphUtils.calculShortestPaths(points, edgeThreshold);
         ArrayList<Point> adapted_result = null;
         ArrayList<Point> best_result = result;
@@ -406,6 +444,44 @@ public class DefaultTeam {
                 }
             }
         }
+        return result;
+    }
+
+
+    public ArrayList<Point> getWellFormatedSolution(Graph graph, int edgeThreshold) {
+        ArrayList<Point> points = graph.points;
+        ArrayList<Point> result = graph.solution;
+        int [][] shortestPaths = GraphUtils.calculShortestPaths(points, edgeThreshold);
+        if(result.size() > 50){
+            System.out.println("Reccupération d'une solution erronée, tentative de correction ...");
+            Graph tmp = storage.getGraphFromId(graph.id);
+            if(Evaluator.isValid(points, result, tmp.hitPoints, edgeThreshold)){
+                ArrayList<Point> tmp_list = new ArrayList<>();
+                for(Point pt : result){
+                    if(tmp.hitPoints.contains(pt)) tmp_list.add(pt);
+                }
+                //System.out.println("getWellFormatedSolution : " + tmp_list);
+                if(Evaluator.isValid(points, GraphUtils.adapt_result(shortestPaths, points, tmp_list), tmp.hitPoints, edgeThreshold)){
+                    result = tmp_list;
+                    System.out.println("Solution corrigée avec succes !");
+                } else {
+                    System.out.println("Echec de correction, creation d'une nouvelle solution ...");
+                    storage.deleteSolution(graph.id, graph.solution);
+                    result = start_solution(tmp.points, tmp.hitPoints);
+                }
+            } else {
+                System.out.println("Solution corrompue, creation d'une nouvelle solution ...");
+                storage.deleteSolution(graph.id, graph.solution);
+                result = start_solution(tmp.points, tmp.hitPoints);
+            }
+
+        } else if(result.size() < 50) {
+            System.out.println("Solution corrompue (contient moins de 50 pts), creation d'une nouvelle solution ...");
+            storage.deleteSolution(graph.id, graph.solution);
+            Graph tmp = storage.getGraphFromId(graph.id);
+            result = start_solution(tmp.points, tmp.hitPoints);
+        }
+
         return result;
     }
 

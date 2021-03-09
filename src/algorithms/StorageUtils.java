@@ -205,6 +205,33 @@ public class StorageUtils {
         return listOfGraphFilesIds;
     }
 
+    public ArrayList<ArrayList<Point>> getTopNOfGraphSolution(int graphId, int n){
+        //getTopNOfGraphSolutionLocal();
+        ArrayList<ArrayList<Point>> result = new ArrayList<>();
+
+        HashMap<String, String> parameters = new HashMap<>();
+        parameters.put("solutions", "");
+        parameters.put("n_best_of_one", "");
+        parameters.put("id_graph", "" + graphId);
+        parameters.put("n", "" + n);
+        String response = get(SERVEUR, parameters);
+
+        String[] parts = response.split("/");
+        for(int i = 0; i < n; i++){
+            String points_str = parts[i];
+            result.add(servPointsParser(points_str));
+        }
+
+        if(result.isEmpty() && false){ // si on a rien reussi à reccuperer via le réseau
+            List<Integer> liste_scores = getTopNOfGraphSolutionLocal(graphId, n);
+            for(Integer score : liste_scores){
+                result.add(readFromFile(SOLUTIONS_FOLDER + "solution_" + graphId + "_" + score + ".points"));
+            }
+        }
+
+        return result;
+    }
+
     public ArrayList<Integer> getListOfFileIdWithNameRegexAndFolderPath(String folderPath, String regex){
         File folder = new File(folderPath);
 
