@@ -19,7 +19,6 @@ public class DefaultTeam {
     public static final int TOP_TO_KEEP = 10;
     private static final int MAX_GREEDY_RANDOMNESS = 65; // en %
     // Pas de variable statique pour rendre possible l'utilisation sur plusieurs CPUs
-    protected Integer NB_GRAPHS_TO_IMPROVE = 5;
     private static final Integer IMPROVE_TIMEOUT = 300000; // en millisecondes
     private int edgeThreshold = -1;
     private StorageUtils storage = new StorageUtils();
@@ -46,8 +45,6 @@ public class DefaultTeam {
             case CREATE_SOLUTION:
                 // reception graphe
                 Graph graph = storage.getOneGraphWithNoSolution();
-                //Graph graph = storage.getGraphFromId(356);
-                //Graph graph = storage.getGraphFromId(storage.getIdFromGraph(points, hitPoints));
                 ArrayList<Point> graph_hitPoints;
 
                 if (graph != null){
@@ -100,11 +97,12 @@ public class DefaultTeam {
 
                 return hitPoints;
                 //return GraphUtils.adapt_result(shortestPaths, graph.points, best_result);
-            /*
-            case EXPERIMENTAL_IMPROVE_SOLUTION:
-                ArrayList<Point> solution = experimental_improve_solution();
 
-             */
+            case EXPERIMENTAL_IMPROVE_SOLUTION:
+                experimental_improve_solution();
+                return hitPoints;
+
+
             case IMPROVE_SOLUTION:
                 if(true){
                     ArrayList<Point> res = experimental_improve_solution();
@@ -140,7 +138,6 @@ public class DefaultTeam {
                     System.out.println("Solution corrompue [graphId:"+graphe.id+"], suppression et travail sur une autre solution ...");
                     int score = (int) Evaluator.score(best_result);
                     storage.deleteSolution(graphe.id, score);
-                    //calculAngularTSP(graphe.points, edgeThreshold, tmp_graphe.hitPoints);
                 } else {
                     result = improve_solution(graphe);
                     try {
@@ -270,7 +267,6 @@ public class DefaultTeam {
 
                     int score_sol = (int) Evaluator.score(GraphUtils.adapt_result(shortestPaths, graphe.points, sol));
                     boolean isValid = Evaluator.isValid(graphe.points, GraphUtils.adapt_result(shortestPaths, graphe.points, sol), graphe.hitPoints, edgeThreshold);
-                    //System.out.println("Score : " + score_sol + " size : " + sol.size() + " isValid : " + isValid);
                     if(isValid) sol_list.add(sol);
                 }
             }
@@ -357,13 +353,13 @@ public class DefaultTeam {
             }
 
             adapted_result = GraphUtils.adapt_result(shortestPaths, points, result);
-            //System.out.println("Score : " + Evaluator.score(adapted_result));
             if(Evaluator.score(adapted_result) < Evaluator.score(GraphUtils.adapt_result(shortestPaths, points, best_result))) best_result = result;
         }
 
         // local search + brute fenetre 6
         return best_result;
     }
+
 
 
     protected static ArrayList<Point> greedy(int [][] shortestPaths, ArrayList<Point> points, ArrayList<Point> hitPoints, int randomness){
@@ -479,7 +475,6 @@ public class DefaultTeam {
                 for(Point pt : result){
                     if(tmp.hitPoints.contains(pt)) tmp_list.add(pt);
                 }
-                //System.out.println("getWellFormatedSolution : " + tmp_list);
                 if(Evaluator.isValid(points, GraphUtils.adapt_result(shortestPaths, points, tmp_list), tmp.hitPoints, edgeThreshold)){
                     result = tmp_list;
                     System.out.println("Solution corrigée avec succes !");

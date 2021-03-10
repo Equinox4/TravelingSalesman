@@ -22,7 +22,6 @@ public class MultiCPUProcess extends Thread {
 
     MultiCPUProcess (ThreadGroup tg, String name, Graph graph, int window, int [][] shortestPaths) {
         super(tg,name);
-        //this.liste = liste;
         this.graph = new Graph(graph.id, graph.points, graph.solution);
         this.window = window;
         this.score = -1;
@@ -33,16 +32,4 @@ public class MultiCPUProcess extends Thread {
         graph.newSolution(DefaultTeam.bruteForce_window(graph.solution, window));
         score = Evaluator.score(GraphUtils.adapt_result(shortestPaths, graph.points, graph.solution));
     }
-
-
-
-    /*
-    
-    -> 60x brute mono fenetre 9
-    -> decroisement
-    -> 40x brute multi fenetre 10
-    -> 200x brute multi fenetre 7
-    -> 10000x brute mono fenetre 5
-
-    */
 }

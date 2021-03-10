@@ -48,7 +48,6 @@ public class StorageUtils {
     }
 
     public boolean saveSolution(int graph_id, ArrayList<Point> best_result, int score) throws Exception {
-        //int score = (int) Evaluator.score(best_result);
 
         // On sauvegarde en local avant pour etre sur de rien perdre si le reseau bug
         saveToFile(SOLUTIONS_FOLDER + "solution_" + graph_id + "_" + score, best_result);
@@ -68,8 +67,6 @@ public class StorageUtils {
     }
 
     public boolean deleteSolution(int graph_id, int score){
-        //int score = (int) Evaluator.score(best_result);
-
         HashMap<String, String> parameters = new HashMap<>();
         parameters.put("delete_solution", "");
         parameters.put("id_graph", "" + graph_id);
@@ -100,8 +97,6 @@ public class StorageUtils {
         parameters.put("top_to_keep", "" + topToKeep);
         String response = get(SERVEUR, parameters);
 
-        //System.out.println(response);
-
         String[] parts = response.split("/");
         int id = Integer.parseInt(parts[0]);
         String points_str = parts[1];
@@ -121,7 +116,6 @@ public class StorageUtils {
         Graph result = null;
         try {
             // Si la connexion à la BDD est possible
-
             HashMap<String, String> parameters = new HashMap<>();
             parameters.put("missing_solutions", "");
             String response = get(SERVEUR, parameters);
@@ -144,7 +138,6 @@ public class StorageUtils {
         } catch(Exception e) {
         } 
         // Si la connexion à la BDD n'est pas possible
-
         if(result == null){
             ArrayList<Integer> candidateIds = getLocalIdListOfGraphWithoutSolution();
             if(candidateIds.isEmpty()) return null;
@@ -163,7 +156,6 @@ public class StorageUtils {
         Graph result = null;
         try {
             // Si la connexion à la BDD est possible
-
             HashMap<String, String> parameters = new HashMap<>();
             parameters.put("all_graphs_id", "");
             String response = get(SERVEUR, parameters);
@@ -182,7 +174,6 @@ public class StorageUtils {
         } catch(Exception e) {
         } 
         // Si la connexion à la BDD n'est pas possible
-
         if(result == null){
             ArrayList<Integer> listOfGraphFilesIds = getListOfFileIdWithNameRegexAndFolderPath(GRAPH_FOLDER, GRAPH_FILE_REGEX);
             if(listOfGraphFilesIds.isEmpty()) return null;
@@ -325,40 +316,6 @@ public class StorageUtils {
 
         return points;
     }
-
-    /*
-    public List<Pair<Integer, Integer>> getTopNOfAllGraphSolutionLocal(int n){
-        File folder = new File(SOLUTIONS_FOLDER);
-
-        File[] listOfFiles = folder.listFiles();
-        ArrayList<Pair<Integer, Integer>> listOfSolutionsWithScore = new ArrayList<>(); // Paire <ID graphe, score solution>
-
-        for (int i = 0; i < listOfFiles.length; i++) {
-            if (listOfFiles[i].isFile()) {
-                String fileName = listOfFiles[i].getName();
-
-                Pattern pattern = Pattern.compile(SOLUTION_FILE_REGEX);
-                Matcher matcher = pattern.matcher(fileName);
-
-                if(matcher.find()){
-                    listOfSolutionsWithScore.add(new Pair(Integer.parseInt(matcher.group(1)), Integer.parseInt(matcher.group(2))));
-                }
-            }
-        }
-
-        Collections.sort(listOfSolutionsWithScore, new Comparator<Pair<Integer, Integer>>() {
-            @Override
-            public int compare(final Pair<Integer, Integer> o1, final Pair<Integer, Integer> o2) {
-                // ordre decroissant
-                if (o1.getValue() > o2.getValue()) return -1;
-                else if (o1.getValue().equals(o2.getValue())) return 0;
-                else return 1;
-            }
-        });
-
-        return listOfSolutionsWithScore.subList(0, n);
-    }
-    */
 
     public List<Integer> getTopNOfGraphSolutionLocal(int graphId, int n){
         File folder = new File(SOLUTIONS_FOLDER);
