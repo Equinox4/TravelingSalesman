@@ -27,8 +27,6 @@ public class DefaultTeam {
     public ArrayList<Point> calculAngularTSP(ArrayList<Point> points, int edgeThreshold, ArrayList<Point> hitPoints) {
         if(this.edgeThreshold == -1) this.edgeThreshold = edgeThreshold;
 
-        System.out.println("edgeThreshold : " + edgeThreshold);
-
         ArrayList<Point> result = new ArrayList<>();
 
         switch (DEFAULT_MODE) {

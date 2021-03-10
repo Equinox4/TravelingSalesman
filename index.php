@@ -125,7 +125,6 @@ if (isset($_POST['new_graph_disabled'])
     $response = "";
 
     // on recherche le meilleur pour ce graphe
-    //$stmt = $bdd->prepare('SELECT s.ordered_hit_points as points FROM graph g, solutions s WHERE g.hash = ? AND g.id = s.id_graph ORDER BY s.score ASC LIMIT 1');
     $stmt = $bdd->prepare('
         select sol.ordered_hit_points as points
         from solutions sol, 
@@ -247,7 +246,6 @@ function row_exists_in(PDO $bdd, $field, $val, $table){
     $sql = "SELECT count(id) as nb FROM ".$table." WHERE ".$field."='".$val."'";
     $stmt = $bdd->prepare($sql);
     $stmt->execute();
-    //$result = $stmt->get_result();
     $count = (int) $stmt->fetch(PDO::FETCH_ASSOC)["nb"];
 
     if ($count > 0) return true;
@@ -259,7 +257,7 @@ function select_a_from_b_where_c_is_d(PDO $bdd, $select, $from, $where, $is){
     $stmt = $bdd->prepare($sql);
     $stmt->execute();
 
-    return $stmt; //$stmt->get_result();
+    return $stmt;
 }
 
 

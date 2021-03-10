@@ -3,11 +3,9 @@
   <component name="ChangeListManager">
     <list default="true" id="1ea79a3b-96a8-4035-9c80-a411bf511833" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/index.php" beforeDir="false" afterPath="$PROJECT_DIR$/index.php" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/algorithms/DefaultTeam.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/algorithms/DefaultTeam.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/algorithms/GraphUtils.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/algorithms/GraphUtils.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/algorithms/Main.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/algorithms/Main.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/algorithms/MultiCPUProcess.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/algorithms/MultiCPUProcess.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/algorithms/StorageUtils.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/algorithms/StorageUtils.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -102,7 +100,7 @@
       <workItem from="1615081094127" duration="149000" />
       <workItem from="1615081256327" duration="4824000" />
       <workItem from="1615132552751" duration="4805000" />
-      <workItem from="1615138061269" duration="54853000" />
+      <workItem from="1615138061269" duration="55084000" />
     </task>
     <task id="LOCAL-00001" summary="ajout fichiers intellij">
       <created>1615082118742</created>
@@ -160,7 +158,14 @@
       <option name="project" value="LOCAL" />
       <updated>1615285648046</updated>
     </task>
-    <option name="localTasksCounter" value="9" />
+    <task id="LOCAL-00009" summary="retrait code commenté">
+      <created>1615417008106</created>
+      <option name="number" value="00009" />
+      <option name="presentableId" value="LOCAL-00009" />
+      <option name="project" value="LOCAL" />
+      <updated>1615417008106</updated>
+    </task>
+    <option name="localTasksCounter" value="10" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -196,7 +201,8 @@
     <MESSAGE value="finetuning creation solution" />
     <MESSAGE value="smartMerge experimental" />
     <MESSAGE value="correction bugs" />
-    <option name="LAST_COMMIT_MESSAGE" value="correction bugs" />
+    <MESSAGE value="retrait code commenté" />
+    <option name="LAST_COMMIT_MESSAGE" value="retrait code commenté" />
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
     <SUITE FILE_PATH="coverage/serieux$Main.ic" NAME="Main Coverage Results" MODIFIED="1615253551210" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="idea" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false">

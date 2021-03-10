@@ -54,27 +54,6 @@ public class GraphUtils {
         return paths;
     }
 
-    public static double [][] calculDistances(ArrayList<Point> points, ArrayList<Point> hitPoints, int [][] shortestPaths){
-        double[][] distances = new double[hitPoints.size()][hitPoints.size()];
-        for (int i= 0; i < hitPoints.size(); i++) {
-            for (int j = 0; j < hitPoints.size(); j++) {
-                distances[i][j] = real_distance(shortestPaths, points, hitPoints.get(i), hitPoints.get(j));
-            }
-        }
-        return distances;
-    }
-    public static double [][] classementDistances(ArrayList<Point> points, ArrayList<Point> hitPoints, int [][] shortestPaths){
-        double[][] distances = new double[hitPoints.size()][hitPoints.size()];
-        for (int i= 0; i < hitPoints.size(); i++) {
-            for (int j = 0; j < hitPoints.size(); j++) {
-                distances[i][j] = real_distance(shortestPaths, points, hitPoints.get(i), hitPoints.get(j));
-            }
-            for (int j = 0; j < hitPoints.size(); j++) {
-                distances[i][j] = real_distance(shortestPaths, points, hitPoints.get(i), hitPoints.get(j));
-            }
-        }
-        return distances;
-    }
 
     public static ArrayList<Point> getShortestPaths(int [][] shortestPaths, ArrayList<Point> liste_points, Point p1, Point p2) {
         ArrayList<Point> result = new ArrayList<>();
